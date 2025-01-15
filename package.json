@@ -8,6 +8,13 @@
     "client": "npm start --prefix frontend"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-scripts": "^5.0.1",
+    "sass": "^1.83.1",
+    "web-vitals": "^4.2.4"
   }
 }

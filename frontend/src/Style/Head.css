@@ -1,0 +1,62 @@
+.Main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  padding: 10px 20px;
+  height: 60px;
+}
+
+.header-img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.front-desk {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.Left-section {
+  display: flex;
+  align-items: center;
+}
+
+.Right-main-header {
+  display: flex;
+  align-items: center;
+}
+
+.apps-section {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.app-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+}
+
+.my-apps {
+  color: #fff;
+  font-size: 14px;
+}
+
+.bb-section {
+  margin-right: 15px;
+}
+
+.bb-text {
+  color: #fff;
+  font-size: 14px;
+  background-color: rgb(44, 40, 67)
+}
+
+.profile-icon {
+  color: #fff;
+  font-size: 14px;
+}
