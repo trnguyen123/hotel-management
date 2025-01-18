@@ -8,7 +8,7 @@ class Header extends React.Component {
     return (
       <>
         <div className='Main-header'>
-          <div className='Left-section'>
+          <div className='Left-main-header'>
             <img className='header-img' src={Ad} alt='logo' />
             <span className='front-desk'>Little Hotelier | Front desk</span>
           </div>
@@ -23,13 +23,14 @@ class Header extends React.Component {
             <div className='profile-icon'>icon</div>
           </div>
         </div>
-        <div>
-          <ul>
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-            <li>4</li>
-            <li>5</li>
+        <div className="Main-menu">
+          <ul className="list-section">
+            <li className="mgr-18">Calendar</li>
+            <li className="mgr-18">Reservations</li>
+            <li className="mgr-18">Inventory</li>
+            <li className="mgr-18">Guests</li>
+            <li className="mgr-18">Reports</li>
+            <li className="mgr-18">Setup</li>
           </ul>
         </div>
       </>

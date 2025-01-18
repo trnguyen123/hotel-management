@@ -1,3 +1,10 @@
+.mgr-18 {
+  margin-right: 18px;
+  color: #000;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .Main-header {
   display: flex;
   justify-content: space-between;
@@ -19,7 +26,7 @@
   font-weight: 400;
 }
 
-.Left-section {
+.Left-main-header {
   display: flex;
   align-items: center;
 }
@@ -39,24 +46,46 @@
   width: 24px;
   height: 24px;
   margin-right: 5px;
+  
 }
 
-.my-apps {
-  color: #fff;
-  font-size: 14px;
-}
-
-.bb-section {
-  margin-right: 15px;
-}
-
-.bb-text {
-  color: #fff;
-  font-size: 14px;
-  background-color: rgb(44, 40, 67)
-}
-
+.my-apps,
+.bb-text,
 .profile-icon {
   color: #fff;
   font-size: 14px;
+}
+
+.bb-text {
+  background-color: rgb(44, 40, 67);
+  padding: 30px 30px;
+}
+
+.profile-icon {
+  margin-left: 18px;
+}
+
+.Main-menu {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: rgba(245, 238, 232, 1);
+  border-bottom: 1px solid #ddd;
+}
+
+.list-section {
+  list-style: none;
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.list-section li {
+  padding: 10px 15px;
+  color: #000;
+}
+
+.list-section li:first-child {
+  border-bottom: 2px solid red;
 }
