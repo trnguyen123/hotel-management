@@ -2,6 +2,7 @@ import React from "react";
 import Ad from "../assets/Ad.svg";
 import Icon from "../assets/Icon.svg";
 import Head from "../Style/Head.css";
+import Calendar from "./Calender";
 
 class Header extends React.Component {
   render() {
@@ -33,6 +34,7 @@ class Header extends React.Component {
             <li className="mgr-18">Setup</li>
           </ul>
         </div>
+        <Calendar/>
       </>
     );
   }
