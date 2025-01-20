@@ -35,6 +35,8 @@ class Header extends React.Component {
           </ul>
         </div>
         <Calendar/>
+        <Calendar/>
+        <Calendar/>
       </>
     );
   }

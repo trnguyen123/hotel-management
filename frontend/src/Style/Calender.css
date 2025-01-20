@@ -1,5 +1,6 @@
 .calendar-container {
   padding: 20px;
+  font-family: Arial, sans-serif;
 }
 
 .calendar-header {
@@ -16,8 +17,18 @@
 }
 
 .days-select {
-  padding: 5px;
+  padding: 8px;
   border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 120px;
+}
+
+.view-today {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .navigation {
@@ -27,23 +38,56 @@
 }
 
 .navigation button {
-  padding: 5px 10px;
+  padding: 8px 12px;
   border: 1px solid #ddd;
   background: white;
   cursor: pointer;
+  border-radius: 4px;
+}
+
+.current-date {
+  padding: 0 10px;
+  font-weight: 500;
+}
+
+.right-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.room-closure {
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .add-reservation {
+  padding: 8px 15px;
   background: #0077cc;
   color: white;
   border: none;
-  padding: 8px 15px;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .calendar-grid {
   border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.expand-icon {
+  padding: 10px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  background: #f5f5f5;
+  cursor: pointer;
+  text-align: center;
 }
 
 .calendar-days {
@@ -59,14 +103,23 @@
   border-right: 1px solid #ddd;
 }
 
+.day-column.today {
+  background: #fff;
+}
+
 .day {
-  font-size: 12px;
   color: #666;
+  font-size: 12px;
+}
+
+.today-text {
+  color: #e67e22;
 }
 
 .date {
   font-size: 16px;
   font-weight: bold;
+  margin: 3px 0;
 }
 
 .month {
@@ -74,14 +127,20 @@
   color: #666;
 }
 
+.family-room {
+  padding: 10px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  font-weight: 500;
+}
+
 .room-grid {
   display: grid;
-  grid-template-columns: auto 1fr;
 }
 
 .room-row {
   display: grid;
-  grid-template-columns: repeat(14, 1fr);
+  grid-template-columns: 100px 1fr;
   border-bottom: 1px solid #ddd;
   min-height: 50px;
 }
@@ -92,20 +151,35 @@
   background: #f9f9f9;
 }
 
+.bookings-container {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  position: relative;
+}
+
 .booking {
+  position: relative;
   background: #e67e22;
   color: white;
   padding: 5px;
   margin: 5px;
   border-radius: 3px;
   font-size: 12px;
-  grid-column: span var(--duration);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-.room-closure {
-  padding: 8px 15px;
-  border: 1px solid #ddd;
-  background: white;
-  cursor: pointer;
-  margin-right: 10px;
+.search-icon {
+  font-size: 10px;
+}
+
+.booking.green {
+  background: #2ecc71;
+}
+
+.blocked-date {
+  background: rgba(200, 200, 200, 0.2);
 }
