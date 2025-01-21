@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../Style/Calender.css";
 
-const Calendar = () => {
+const Family = () => {
   const [currentDate, setCurrentDate] = useState("31 Aug 2021");
   const [selectedDays, setSelectedDays] = useState("14 days");
   const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
@@ -143,7 +143,7 @@ const Calendar = () => {
 
         {isRoomSectionExpanded && (
           <div className="room-section">
-            <div className="family-room">▼ Family Room</div>
+            <div className="hotel-room"> Family Room</div>
             <div className="room-grid">
               {rooms.map((room) => (
                 <div key={room.id} className="room-row">
@@ -173,4 +173,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default Family;

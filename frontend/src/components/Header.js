@@ -2,7 +2,10 @@ import React from "react";
 import Ad from "../assets/Ad.svg";
 import Icon from "../assets/Icon.svg";
 import Head from "../Style/Head.css";
-import Calendar from "./Calender";
+import Family from "./Family";
+import Queen from "./Queen";
+import Standard from "./Standard";
+import Footer from "./Footer";
 
 class Header extends React.Component {
   render() {
@@ -24,19 +27,20 @@ class Header extends React.Component {
             <div className='profile-icon'>icon</div>
           </div>
         </div>
-        <div className="Main-menu">
-          <ul className="list-section">
-            <li className="mgr-18">Calendar</li>
-            <li className="mgr-18">Reservations</li>
-            <li className="mgr-18">Inventory</li>
-            <li className="mgr-18">Guests</li>
-            <li className="mgr-18">Reports</li>
-            <li className="mgr-18">Setup</li>
+        <div className='Main-menu'>
+          <ul className='list-section'>
+            <li className='mgr-18'>Calendar</li>
+            <li className='mgr-18'>Reservations</li>
+            <li className='mgr-18'>Inventory</li>
+            <li className='mgr-18'>Guests</li>
+            <li className='mgr-18'>Reports</li>
+            <li className='mgr-18'>Setup</li>
           </ul>
         </div>
-        <Calendar/>
-        <Calendar/>
-        <Calendar/>
+        <Family />
+        <Queen />
+        <Standard />
+        <Footer />
       </>
     );
   }

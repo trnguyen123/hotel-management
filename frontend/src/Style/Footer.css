@@ -1,0 +1,77 @@
+.main-footer {
+  background-color: #000;
+  color: #fff;
+  padding: 20px 40px;
+  font-family: Arial, sans-serif;
+}
+
+.footer-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-menu {
+  display: flex;
+  justify-content: flex-start;
+  gap: 40px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Styling cho menu item chính */
+.menu-item {
+  position: relative;
+  padding: 10px 0;
+}
+
+.main-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Styling cho submenu */
+.submenu {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.submenu li {
+  margin: 8px 0;
+}
+
+.submenu a {
+  color: #888;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.submenu a:hover {
+  color: #fff;
+}
+
+/* Hiệu ứng hover cho menu chính */
+.main-link:hover {
+  color: #ccc;
+}
+
+/* Media queries cho responsive */
+@media (max-width: 768px) {
+  .footer-menu {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .menu-item {
+    padding: 5px 0;
+  }
+
+  .submenu {
+    margin-left: 15px;
+  }
+}
