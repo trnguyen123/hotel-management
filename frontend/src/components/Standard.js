@@ -24,117 +24,14 @@ const Standard = () => {
   ]);
 
   const [rooms] = useState([
-    {
-      id: 1,
-      name: "Room 1",
-      bookings: [
-        {
-          guest: "Clark, Oliver",
-          startDate: "31",
-          endDate: "02",
-          color: "#E67E22",
-        },
-        {
-          guest: "Smith, Olivia",
-          startDate: "03",
-          endDate: "05",
-          color: "#E67E22",
-        },
-        {
-          guest: "Lee, Charlotte",
-          startDate: "09",
-          endDate: "11",
-          color: "#E67E22",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Room 2",
-      bookings: [
-        {
-          guest: "Davis, Isla",
-          startDate: "02",
-          endDate: "06",
-          color: "#E67E22",
-        },
-        {
-          guest: "Harris, Noah",
-          startDate: "09",
-          endDate: "13",
-          color: "#E67E22",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Room 3",
-      bookings: [
-        {
-          guest: "Clark, Charlotte",
-          startDate: "31",
-          endDate: "03",
-          color: "#E67E22",
-        },
-        {
-          guest: "Moore, Thomas",
-          startDate: "04",
-          endDate: "09",
-          color: "#E67E22",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "Room 4",
-      bookings: [
-        {
-          guest: "Milfred, Cate",
-          startDate: "31",
-          endDate: "02",
-          color: "#2ECC71",
-        },
-        {
-          guest: "Pantoja, Bruno",
-          startDate: "02",
-          endDate: "04",
-          color: "#E67E22",
-        },
-        {
-          guest: "Davis, Olivia",
-          startDate: "04",
-          endDate: "11",
-          color: "#E67E22",
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: "Room 5",
-      bookings: [
-        {
-          guest: "Moore, Oliver",
-          startDate: "02",
-          endDate: "07",
-          color: "#E67E22",
-        },
-      ],
-    },
-    {
-      id: 6,
-      name: "Room 6",
-      bookings: [],
-    },
-    {
-      id: 7,
-      name: "Room 7",
-      bookings: [],
-    },
-    {
-      id: 8,
-      name: "Room 8",
-      bookings: [],
-    },
+    { id: 1, name: "Room 1", bookings: [] },
+    { id: 2, name: "Room 2", bookings: [] },
+    { id: 3, name: "Room 3", bookings: [] },
+    { id: 4, name: "Room 4", bookings: [] },
+    { id: 5, name: "Room 5", bookings: [] },
+    { id: 6, name: "Room 6", bookings: [] },
+    { id: 7, name: "Room 7", bookings: [] },
+    { id: 8, name: "Room 8", bookings: [] },
   ]);
 
   const handleDaysChange = (event) => {
