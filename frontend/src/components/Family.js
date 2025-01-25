@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import "../Style/Calender.css";
-import EditReservationModal from "./EditReservationModal";
+import ReservationModal from "./ReservationModal";
 
 const Family = () => {
   const [currentDate, setCurrentDate] = useState("31 Aug 2021");
   const [selectedDays, setSelectedDays] = useState("14 days");
   const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
-
-  // State mới để điều khiển hiển thị modal
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [showReservationModal, setShowReservationModal] = useState(false);
 
   const [days] = useState([
     { day: "TODAY", date: "31", month: "AUG", weekday: "" },
@@ -37,17 +35,6 @@ const Family = () => {
     { id: 7, name: "Room 7", bookings: [] },
     { id: 8, name: "Room 8", bookings: [] },
   ]);
-
-  // Hàm mở modal đặt phòng
-  const handleOpenReservationModal = () => {
-    setIsReservationModalOpen(true);
-  };
-
-  // Hàm đóng modal đặt phòng
-  const handleCloseReservationModal = () => {
-    setIsReservationModalOpen(false);
-  };
-
   const handleDaysChange = (event) => {
     setSelectedDays(event.target.value);
   };
@@ -89,7 +76,7 @@ const Family = () => {
           <button className='room-closure'>○ Room closure</button>
           <button
             className='add-reservation'
-            onClick={handleOpenReservationModal}
+            onClick={() => setShowReservationModal(true)}
           >
             + Reservation
           </button>
@@ -143,10 +130,10 @@ const Family = () => {
           </div>
         )}
       </div>
-      {/* Modal đặt phòng */}
-      {isReservationModalOpen && (
-        <EditReservationModal onClose={handleCloseReservationModal} />
-      )}
+      <ReservationModal
+        isOpen={showReservationModal}
+        onClose={() => setShowReservationModal(false)}
+      />
     </div>
   );
 };
