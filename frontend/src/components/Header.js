@@ -6,6 +6,7 @@ import Family from "./Family";
 import Queen from "./Queen";
 import Standard from "./Standard";
 import Footer from "./Footer";
+import Login from "./Login";
 
 class Header extends React.Component {
   render() {
@@ -41,6 +42,7 @@ class Header extends React.Component {
         <Queen />
         <Standard />
         <Footer />
+        <Login />
       </>
     );
   }
