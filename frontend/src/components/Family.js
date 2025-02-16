@@ -105,7 +105,7 @@ const Family = () => {
         {isRoomSectionExpanded && (
           <div className='room-section'>
             <div className='hotel-room'> Family Room</div>
-            <div className='room-grid'>
+            <div className='room-grid '>
               {rooms.map((room) => (
                 <div key={room.id} className='room-row'>
                   <div className='room-name'>{room.name}</div>
