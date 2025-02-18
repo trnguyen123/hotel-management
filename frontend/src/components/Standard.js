@@ -47,7 +47,7 @@ const Standard = () => {
   };
 
   return (
-    <div className='calendar-container'>
+    <div className='calendar-container standard'>
       <div className='calendar-grid'>
         <div className='expand-icon' onClick={toggleRoomSection}>
           ↕

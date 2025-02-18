@@ -47,7 +47,7 @@ const Queen = () => {
   };
 
   return (
-    <div className='calendar-container'>
+    <div className='calendar-container queen'>
       <div className='calendar-grid'>
         <div className='expand-icon' onClick={toggleRoomSection}>
           ↕
