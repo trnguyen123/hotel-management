@@ -38,11 +38,6 @@ class Header extends React.Component {
             <li className='mgr-18'>Setup</li>
           </ul>
         </div>
-        <Family />
-        <Queen />
-        <Standard />
-        <Footer />
-        <Login />
       </>
     );
   }
