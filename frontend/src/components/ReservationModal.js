@@ -1,7 +1,101 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../Style/ReservationModal.css";
 
-const ReservationModal = ({ isOpen, onClose }) => {
+/* Modal chi tiết booking */
+const BookingDetailsModal = ({ booking, onClose }) => {
+  if (!booking) return null;
+
+  return (
+    <div className='modal-overlay' onClick={onClose}>
+      <div className='modal-content' onClick={(e) => e.stopPropagation()}>
+        <div className='modal-header'>
+          <h2>Chi tiết đặt phòng</h2>
+          <button type='button' className='close-button' onClick={onClose}>
+            &times;
+          </button>
+        </div>
+        <div className='modal-body'>
+          <div className='section'>
+            <h3>Thông tin khách hàng</h3>
+            <p>
+              <strong>Tên:</strong> {booking.details.full_name}
+            </p>
+            <p>
+              <strong>Giới tính:</strong>{" "}
+              {booking.details.gender === "male" ? "Nam" : "Nữ"}
+            </p>
+            <p>
+              <strong>SĐT:</strong> {booking.details.phone_number}
+            </p>
+            <p>
+              <strong>Email:</strong> {booking.details.email}
+            </p>
+            <p>
+              <strong>CMND:</strong> {booking.details.id_card}
+            </p>
+            <p>
+              <strong>Địa chỉ:</strong> {booking.details.address}
+            </p>
+          </div>
+
+          <div className='section'>
+            <h3>Thông tin phòng</h3>
+            <p>
+              <strong>Loại phòng:</strong> {booking.details.room_type}
+            </p>
+            <p>
+              <strong>Số phòng:</strong> {booking.details.room_number}
+            </p>
+            <p>
+              <strong>Ngày nhận phòng:</strong> {booking.details.check_in_date}
+            </p>
+            <p>
+              <strong>Ngày trả phòng:</strong> {booking.details.check_out_date}
+            </p>
+          </div>
+
+          <div className='section'>
+            <h3>Thanh toán</h3>
+            <p>
+              <strong>Phương thức:</strong>{" "}
+              {booking.details.payment_method === "cash"
+                ? "Tiền mặt"
+                : booking.details.payment_method === "credit_card"
+                ? "Thẻ tín dụng"
+                : "Chuyển khoản"}
+            </p>
+            <p>
+              <strong>Mã giảm giá:</strong>{" "}
+              {booking.details.voucher_code || "Không có"}
+            </p>
+          </div>
+
+          <div className='section'>
+            <h3>Dịch vụ đã chọn</h3>
+            {booking.details.selected_services.length > 0 ? (
+              <ul>
+                {booking.details.selected_services.map((service, index) => (
+                  <li key={index}>{service}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Không có dịch vụ bổ sung</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ReservationModal = ({
+  isOpen,
+  onClose,
+  onBookingCreated,
+  selectedBooking,
+  onBookingDetailsClosed,
+}) => {
+  // State form để tạo booking mới
   const [formData, setFormData] = useState({
     check_in_date: "",
     check_out_date: "",
@@ -18,35 +112,20 @@ const ReservationModal = ({ isOpen, onClose }) => {
     selected_services: [],
   });
 
-  const [availableServices, setAvailableServices] = useState([]);
-  const [roomPrices, setRoomPrices] = useState({});
+  // Khi click ô booking trên lịch, selectedBooking != null => hiển thị modal chi tiết
+  if (!isOpen) return null; // Modal chưa mở => return null
 
-  // Load dữ liệu từ API backend
-  useEffect(() => {
-    if (isOpen) {
-      // Lấy danh sách dịch vụ
-      fetch("http://localhost:3001/api/services")
-        .then((res) => res.json())
-        .then(setAvailableServices)
-        .catch(console.error);
+  if (selectedBooking) {
+    // Hiển thị modal chi tiết booking
+    return (
+      <BookingDetailsModal
+        booking={selectedBooking}
+        onClose={onBookingDetailsClosed} 
+      />
+    );
+  }
 
-      // Lấy thông tin giá phòng
-      fetch("http://localhost:3001/api/rooms")
-        .then((res) => res.json())
-        .then((rooms) => {
-          const prices = rooms.reduce(
-            (acc, room) => ({
-              ...acc,
-              [room.room_type]: room.price,
-            }),
-            {}
-          );
-          setRoomPrices(prices);
-        })
-        .catch(console.error);
-    }
-  }, [isOpen]);
-
+  // Nếu không có selectedBooking => hiển thị form tạo booking mới
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -60,60 +139,25 @@ const ReservationModal = ({ isOpen, onClose }) => {
     }));
   };
 
-  const calculateTotal = () => {
-    const roomPrice = roomPrices[formData.room_type] || 0;
-    const servicesTotal = formData.selected_services.reduce(
-      (sum, serviceId) => {
-        const service = availableServices.find(
-          (s) => s.service_id == serviceId
-        );
-        return sum + (service?.price || 0);
-      },
-      0
-    );
-    return roomPrice + servicesTotal;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    // Tạo booking object
+    const color =
+      formData.payment_method === "cash" ? "#4CAF50" : "#FFA500";
 
-    try {
-      // Gửi dữ liệu đến backend qua API
-      const response = await fetch("http://localhost:3001/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: {
-            full_name: formData.full_name,
-            gender: formData.gender,
-            address: formData.address,
-            phone_number: formData.phone_number,
-            id_card: formData.id_card,
-            email: formData.email,
-          },
-          booking: {
-            check_in_date: formData.check_in_date,
-            check_out_date: formData.check_out_date,
-            room_type: formData.room_type,
-            room_number: formData.room_number,
-            selected_services: formData.selected_services,
-            voucher_code: formData.voucher_code,
-            payment_method: formData.payment_method,
-            total_amount: calculateTotal(),
-          },
-        }),
-      });
+    const booking = {
+      guest: formData.full_name,
+      color: color,
+      details: { ...formData },
+    };
 
-      if (!response.ok) throw new Error("Lỗi API");
-      const result = await response.json();
-      console.log("Thành công:", result);
-      onClose();
-    } catch (error) {
-      console.error("Lỗi khi tạo booking:", error);
-    }
+    // Gửi booking lên Family.js để thêm vào rooms
+    onBookingCreated(booking);
+
+    // Đóng modal
+    onClose();
   };
 
-  if (!isOpen) return null;
   return (
     <div className='modal-overlay' onClick={onClose}>
       <div className='modal-content' onClick={(e) => e.stopPropagation()}>
@@ -126,7 +170,6 @@ const ReservationModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className='modal-body'>
-            {/* Phần Thông Tin Cơ Bản */}
             <div className='section'>
               <h3>Thông Tin Khách Hàng</h3>
               <div className='form-row'>
@@ -167,9 +210,28 @@ const ReservationModal = ({ isOpen, onClose }) => {
                   />
                 </div>
               </div>
+
+              <div className='form-row'>
+                <div className='input-group'>
+                  <label>Số điện thoại</label>
+                  <input
+                    type='tel'
+                    name='phone_number'
+                    required
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className='input-group'>
+                  <label>Địa chỉ</label>
+                  <input
+                    type='text'
+                    name='address'
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Phần Thông Tin Phòng */}
             <div className='section'>
               <h3>Thông Tin Phòng</h3>
               <div className='form-row'>
@@ -183,12 +245,18 @@ const ReservationModal = ({ isOpen, onClose }) => {
                 </div>
                 <div className='input-group'>
                   <label>Số phòng</label>
-                  <input
-                    type='text'
+                  <select
                     name='room_number'
                     required
                     onChange={handleInputChange}
-                  />
+                  >
+                    <option value=''>Chọn phòng</option>
+                    {[...Array(8).keys()].map((i) => (
+                      <option key={i + 1} value={`Room ${i + 1}`}>
+                        Room {i + 1}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -214,25 +282,11 @@ const ReservationModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Phần Dịch Vụ Bổ Sung */}
             <div className='section'>
               <h3>Dịch Vụ Bổ Sung</h3>
-              <div className='services-grid'>
-                {availableServices.map((service) => (
-                  <label key={service.service_id} className='service-item'>
-                    <input
-                      type='checkbox'
-                      name='selected_services'
-                      value={service.service_id}
-                      onChange={handleInputChange}
-                    />
-                    {service.service_name} (+${service.price})
-                  </label>
-                ))}
-              </div>
+              {/* Nếu cần dịch vụ, bạn có thể thêm vào. Hiện để trống. */}
             </div>
 
-            {/* Phần Thanh Toán */}
             <div className='section'>
               <h3>Thông Tin Thanh Toán</h3>
               <div className='form-row'>

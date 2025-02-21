@@ -1,0 +1,76 @@
+/* Toàn bộ trang */
+.service-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* chiếm toàn bộ chiều cao màn hình */
+    background: #f2f2f2; /* màu nền nhạt */
+  }
+  
+  /* Khối form */
+  .service-form {
+    background: #fff;
+    padding: 30px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+  }
+  
+  /* Tiêu đề chính */
+  .service-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Tiêu đề phụ */
+  .service-subtitle {
+    margin: 5px 0 20px;
+    color: #777;
+    font-size: 14px;
+  }
+  
+  /* Mỗi nhóm input */
+  .input-group {
+    margin-bottom: 20px;
+    text-align: left; /* label và input canh trái */
+  }
+  
+  /* Nhãn */
+  .input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #444;
+  }
+  
+  /* Ô input */
+  .input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* Nút submit */
+  .service-button {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    margin-top: 5px;
+  }
+  
+  .service-button:hover {
+    background: #0056b3;
+  }
+  

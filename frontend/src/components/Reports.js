@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import '../Style/Calender.css';
-import '../Style/Head.css';
-import '../Style/Reports';
+import React, { useState } from "react";
+import "../Style/Calender.css";
+import "../Style/Head.css";
+import "../Style/Reports.css";
 const ReportsPage = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reports, setReports] = useState([]);
@@ -24,10 +24,7 @@ const ReportsPage = () => {
       <div className='calendar-header'>
         <h2>Báo Cáo</h2>
         <div className='right-controls'>
-          <button 
-            className='add-reservation'
-            onClick={handleOpenReportModal}
-          >
+          <button className='add-reservation' onClick={handleOpenReportModal}>
             + Tạo Báo Cáo Mới
           </button>
         </div>
@@ -40,9 +37,7 @@ const ReportsPage = () => {
               <span>{report.customerName}</span>
               <span>{report.reportDate}</span>
             </div>
-            <div className='report-content'>
-              {report.reportContent}
-            </div>
+            <div className='report-content'>{report.reportContent}</div>
           </div>
         ))}
       </div>
@@ -72,7 +67,10 @@ const ReportsPage = () => {
             </div>
             <div className='modal-footer'>
               <button className='btn btn-primary'>Lưu Báo Cáo</button>
-              <button className='btn btn-secondary' onClick={handleCloseReportModal}>
+              <button
+                className='btn btn-secondary'
+                onClick={handleCloseReportModal}
+              >
                 Hủy
               </button>
             </div>

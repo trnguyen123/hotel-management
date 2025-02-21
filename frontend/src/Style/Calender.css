@@ -22,12 +22,10 @@
   text-align: center;
   border-bottom: 1px solid #ddd;
   background: #f5f5f5;
-  border-right: 1px solid #ddd;
 }
 
 .day-column {
   padding: 10px;
-  border-right: 1px solid #ddd;
   position: relative;
 }
 
@@ -92,17 +90,14 @@
   display: grid;
   grid-template-columns: repeat(14, 1fr);
   position: relative;
-  border-right: 1px solid #ddd;
 }
 
 .bookings-container > * {
-  border-right: 1px solid #ddd;
   min-height: 50px;
 }
 
 .day-column:last-child,
 .bookings-container > :last-child {
-  border-right: 1px solid #ddd !important;
 }
 
 .calendar-grid {
@@ -110,15 +105,16 @@
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: -1px;
+  position: relative; /* Cho việc kẻ dọc chung */
 }
 
 .expand-icon {
   padding: 10px;
-  border-right: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   background: #f5f5f5;
   cursor: pointer;
   text-align: center;
+  border-right: none !important;
 }
 
 .calendar-controls {
@@ -218,43 +214,36 @@
   border-top: 1px solid #ddd;
 }
 
-/* --- Phần bổ sung: thêm đường kẻ dọc xuống theo hình minh họa --- */
-/* Giữ nguyên bố cục, chỉ thêm đường kẻ dọc cho toàn bộ các cột trong .calendar-days */
-.calendar-days {
-  position: relative;
-}
-
-/* ------------------------------ */
-/* Kẻ đường dọc xuyên suốt .calendar-grid */
-.calendar-grid {
-  position: relative; /* Đảm bảo có thể dùng ::after để phủ nền */
-}
-
-/* Đảm bảo .calendar-days và .room-section nổi lên trên nền kẻ */
-.calendar-days,
-.room-section {
-  position: relative;
-  z-index: 1;
-}
-
-/* Sử dụng ::after để vẽ đường kẻ dọc chung cho toàn bộ chiều cao */
+/* Đảm bảo .calendar-grid có thể vẽ đường kẻ dọc phủ */
 .calendar-grid::after {
   content: "";
   position: absolute;
-  top: 0;
+  top: 50px; /* Bắt đầu từ dưới phần expand-icon */
   bottom: 0;
-  /* Giả sử nút expand-icon (↕) rộng ~40px, ta chừa ra để không đè lên icon */
-  left: 40px;
-  width: calc(100% - 40px);
+  pointer-events: none;
+  z-index: 0; /* Nằm dưới phần days và room-section */
 
-  /* 14 cột tương ứng 14 ngày, lặp lại đường kẻ sau mỗi (100% / 13) */
+  /* 
+    Bắt đầu kẻ từ day index=1 (WED 01) 
+    => left = 1/14 tổng chiều rộng 
+    Kết thúc ở day index=12 (SUN 12) 
+    => width = 12/14 tổng chiều rộng 
+  */
+  left: calc((100% / 14) * 1);
+  width: calc((100% / 14) * 12);
+
+  /* Tạo 12 đường kẻ dọc (mỗi đường là ranh giới giữa 12 ngày) */
   background-image: repeating-linear-gradient(
     to right,
     transparent,
-    transparent calc((100% / 13) - 1px),
-    #333 calc((100% / 13) - 1px),
-    #333 calc(100% / 13)
+    transparent calc((100% / 12) - 1px),
+    #ddd calc((100% / 12) - 1px),
+    #ddd calc(100% / 12)
   );
-  pointer-events: none; /* Không cản trở thao tác người dùng */
-  z-index: 0;           /* Nằm dưới .calendar-days và .room-section */
+}
+
+.hotel-room {
+  position: relative;
+  z-index: 1;
+  background: #f9f9f9; /* Giữ nguyên */
 }
