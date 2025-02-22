@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Booking {
     constructor(booking_id, customer_id, room_id, check_in_date, check_out_date, status, payment_status, total_price, cancellation_date) {

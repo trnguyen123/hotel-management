@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Employee {
     constructor(employee_id, full_name, password, phone_number, email, role) {

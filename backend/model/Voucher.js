@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Voucher {
     constructor(voucher_code, discount_percentage, expiry_date, minimum_order_value) {

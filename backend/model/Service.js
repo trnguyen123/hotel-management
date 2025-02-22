@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Service {
     constructor(service_id, service_name, price, unit, status) {

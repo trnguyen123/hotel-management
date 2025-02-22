@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class RoomService {
     constructor(service_id, room_id, service_date, status) {

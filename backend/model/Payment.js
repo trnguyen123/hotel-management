@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Payment {
     constructor(payment_id, booking_id, amount, payment_date, payment_method, status) {

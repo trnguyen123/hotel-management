@@ -1,4 +1,4 @@
-const db = require('./db');
+const db = require('../config/db'); 
 
 class Room {
     constructor(room_id, room_number, room_type, status, price, max_occupancy, area) {
