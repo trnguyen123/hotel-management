@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const port = 5000;
 const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/service');
-
+const reportRoutes = require('./routes/report');
 // Cấu hình CORS
 const corsOptions = {
   origin: ['http://localhost:3000', 'http://localhost:5000'],
@@ -39,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'assets')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/service', serviceRoutes);
+app.use('/api/report', reportRoutes);
 
 // Khởi chạy server
 app.listen(port, () => {
