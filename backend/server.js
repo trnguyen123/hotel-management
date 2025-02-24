@@ -7,6 +7,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const port = 5000;
 const authRoutes = require('./routes/auth');
+const serviceRoutes = require('./routes/service');
 
 // Cấu hình CORS
 const corsOptions = {
@@ -36,9 +37,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Cấu hình static file cho thư mục assets
 app.use(express.static(path.join(__dirname, 'assets')));
 
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-
 app.use('/api/auth', authRoutes);
+app.use('/api/service', serviceRoutes);
 
 // Khởi chạy server
 app.listen(port, () => {
