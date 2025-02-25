@@ -1,34 +1,56 @@
 import React, { useState } from "react";
 import ReservationModal from "./ReservationModal";
-import "../Style/Calender.css";
+import "../Style/Calendar.css";
 import { useBooking } from "./BookingContext";
+import { useCalendar } from "./CalendarContext";
+
+// Hàm tạo mảng ngày động từ startDate với số ngày dayRange
+function generateDays(startDate, dayRange) {
+  const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const monthNames = [
+    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+  ];
+  const daysArray = [];
+  for (let i = 0; i < dayRange; i++) {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    daysArray.push({
+      dateObj: d,
+      day: i === 0 ? "TODAY" : dayNames[d.getDay()],
+      date: d.getDate().toString().padStart(2, "0"),
+      month: monthNames[d.getMonth()],
+    });
+  }
+  return daysArray;
+}
+
+function formatDDMMYYYY(dateObj) {
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const yyyy = dateObj.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function parseDateInput(str) {
+  if (!str) return null;
+  if (str.includes("-")) return new Date(str);
+  if (str.includes("/")) {
+    const [dd, mm, yyyy] = str.split("/");
+    return new Date(`${yyyy}-${mm}-${dd}`);
+  }
+  return new Date(str);
+}
 
 const Family = () => {
-  const [currentDate, setCurrentDate] = useState("31 Aug 2021");
-  const [selectedDays, setSelectedDays] = useState("14 days");
-  const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
+  const [dayRange, setDayRange] = useState(14);
+  const [startDate, setStartDate] = useState(new Date());
+  const days = generateDays(startDate, dayRange);
+  const [inputDate, setInputDate] = useState(formatDDMMYYYY(startDate));
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const { bookings, addBooking } = useBooking();
 
-  const days = [
-    { day: "TODAY", date: "31", month: "AUG" },
-    { day: "WED", date: "01", month: "SEP" },
-    { day: "THU", date: "02", month: "SEP" },
-    { day: "FRI", date: "03", month: "SEP" },
-    { day: "SAT", date: "04", month: "SEP" },
-    { day: "SUN", date: "05", month: "SEP" },
-    { day: "MON", date: "06", month: "SEP" },
-    { day: "TUE", date: "07", month: "SEP" },
-    { day: "WED", date: "08", month: "SEP" },
-    { day: "THU", date: "09", month: "SEP" },
-    { day: "FRI", date: "10", month: "SEP" },
-    { day: "SAT", date: "11", month: "SEP" },
-    { day: "SUN", date: "12", month: "SEP" },
-    { day: "MON", date: "13", month: "SEP" },
-  ];
-
-  // Danh sách phòng cố định cho Family Room
   const roomsList = [
     { id: 1, name: "Room 1" },
     { id: 2, name: "Room 2" },
@@ -40,7 +62,6 @@ const Family = () => {
     { id: 8, name: "Room 8" },
   ];
 
-  // Lọc booking từ context theo loại phòng và số phòng (Family Room)
   const rooms = roomsList.map((room) => ({
     ...room,
     bookings: bookings.filter(
@@ -50,77 +71,104 @@ const Family = () => {
     ),
   }));
 
-  const handleDaysChange = (event) => {
-    setSelectedDays(event.target.value);
+  const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
+
+  const handleDateChange = (e) => {
+    const value = e.target.value;
+    setInputDate(value);
+    const parsed = parseDateInput(value);
+    if (parsed && !isNaN(parsed.getTime())) {
+      setStartDate(parsed);
+    }
   };
 
   const handleViewToday = () => {
-    setCurrentDate("31 Aug 2021");
+    const today = new Date();
+    setStartDate(today);
+    setInputDate(formatDDMMYYYY(today));
   };
 
-  const toggleRoomSection = () => {
-    setIsRoomSectionExpanded(!isRoomSectionExpanded);
+  const handlePrev = () => {
+    const newStart = new Date(startDate);
+    newStart.setDate(newStart.getDate() - 7);
+    setStartDate(newStart);
+    setInputDate(formatDDMMYYYY(newStart));
   };
 
-  // Phạm vi ngày: 31/08/2021 đến 13/09/2021
-  const startOfCalendar = new Date(2021, 7, 31);
-  const endOfCalendar = new Date(2021, 8, 13);
+  const handleNext = () => {
+    const newStart = new Date(startDate);
+    newStart.setDate(newStart.getDate() + 7);
+    setStartDate(newStart);
+    setInputDate(formatDDMMYYYY(newStart));
+  };
 
-  function parseInputDate(dateStr) {
-    if (!dateStr) return null;
-    if (dateStr.includes("-")) return new Date(dateStr);
-    if (dateStr.includes("/")) {
-      const [mm, dd, yyyy] = dateStr.split("/");
-      return new Date(`${yyyy}-${mm}-${dd}`);
+  const handleDaysChange = (e) => {
+    const num = parseInt(e.target.value);
+    if (!isNaN(num)) {
+      setDayRange(num);
     }
-    return new Date(dateStr);
-  }
+  };
 
-  function getGridColumn(dateObj) {
+  const getGridColumn = (dateObj) => {
     if (!dateObj) return 0;
-    if (dateObj < startOfCalendar || dateObj > endOfCalendar) return 0;
-    const diffTime = dateObj - startOfCalendar;
+    const diffTime = dateObj - startDate;
+    if (diffTime < 0) return 0;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays >= dayRange) return 0;
     return diffDays + 1;
-  }
+  };
 
   return (
     <div className="calendar-container">
       <div className="calendar-header">
         <div className="calendar-controls">
-          <select className="days-select" value={selectedDays} onChange={handleDaysChange}>
-            <option value="14 days">14 days</option>
-            <option value="30 days">30 days</option>
-          </select>
-          <button className="view-today" onClick={handleViewToday}>View today</button>
-          <div className="navigation">
-            <button>⟪</button>
-            <button>⟨</button>
-            <button>⟩</button>
-            <span className="current-date">{currentDate}</span>
-            <button>⟩</button>
-            <button>⟫</button>
-            <button>⟫⟫</button>
-          </div>
+          <input
+            type="date"
+            value={parseDateInput(inputDate)?.toISOString().split("T")[0] || ""}
+            onChange={handleDateChange}
+            style={{ padding: "6px" }}
+          />
+          <button className="btn-calendar" onClick={handleViewToday}>
+            Hiện tại
+          </button>
+          <button className="btn-calendar" onClick={handlePrev}>
+            Trở về
+          </button>
+          <button className="btn-calendar" onClick={handleNext}>
+            Tiếp
+          </button>
         </div>
         <div className="right-controls">
-          <button className="room-closure">○ Room closure</button>
-          {/* Nút "+ Reservation" chỉ xuất hiện ở Family.js */}
-          <button className="add-reservation" onClick={() => { setSelectedBooking(null); setShowReservationModal(true); }}>
+          <select value={`${dayRange}`} onChange={handleDaysChange}>
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30">30 days</option>
+          </select>
+          <button
+            className="add-reservation"
+            onClick={() => {
+              setSelectedBooking(null);
+              setShowReservationModal(true);
+            }}
+          >
             + Reservation
           </button>
         </div>
       </div>
-      <div className="calendar-grid">
-        <div className="expand-icon" onClick={toggleRoomSection}>
-          Family Room
-        </div>
-        <div className="calendar-days">
-          {days.map((day, index) => (
-            <div key={index} className={`day-column ${day.day === "TODAY" ? "today" : ""}`}>
-              <div className={`day ${day.day === "TODAY" ? "today-text" : ""}`}>{day.day}</div>
-              <div className="date">{day.date}</div>
-              <div className="month">{day.month}</div>
+      <div className="calendar-grid" style={{ overflowX: "auto" }}>
+        <div
+          className="calendar-days"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
+            minWidth: `${dayRange * 90}px`,
+          }}
+        >
+          {days.map((dayObj, index) => (
+            <div key={index} className={`day-column ${index === 0 ? "today" : ""}`}>
+              <div className={`day ${index === 0 ? "today-text" : ""}`}>{dayObj.day}</div>
+              <div className="date">{dayObj.date}</div>
+              <div className="month">{dayObj.month}</div>
             </div>
           ))}
         </div>
@@ -131,13 +179,20 @@ const Family = () => {
               {rooms.map((room) => (
                 <div key={room.id} className="room-row">
                   <div className="room-name">{room.name}</div>
-                  <div className="bookings-container">
+                  <div
+                    className="bookings-container"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
+                      minWidth: `${dayRange * 90}px`,
+                    }}
+                  >
                     {room.bookings.map((booking, index) => {
-                      const startDate = parseInputDate(booking.details.check_in_date);
-                      const endDate = parseInputDate(booking.details.check_out_date);
-                      const startCol = getGridColumn(startDate);
-                      if (!endDate || isNaN(endDate.getTime())) return null;
-                      let diffTime = endDate - startDate;
+                      const start = parseDateInput(booking.details.check_in_date);
+                      const end = parseDateInput(booking.details.check_out_date);
+                      const startCol = getGridColumn(start);
+                      if (!end || isNaN(end.getTime())) return null;
+                      let diffTime = end - start;
                       let duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                       if (duration < 1) duration = 1;
                       const endCol = startCol + duration;
@@ -163,9 +218,7 @@ const Family = () => {
                             setShowReservationModal(true);
                           }}
                         >
-                          <div className="booking-content">
-                            <div>{booking.guest}</div>
-                          </div>
+                          <div className="booking-content">{booking.guest}</div>
                         </div>
                       );
                     })}

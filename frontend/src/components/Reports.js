@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../Style/Calender.css";
+import "../Style/Calendar.css";
 import "../Style/Head.css";
 import "../Style/Reports.css";
 

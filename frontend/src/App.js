@@ -8,19 +8,22 @@ import Footer from "./components/Footer.js";
 import Login from "./components/Login.js";
 import Reports from "./components/Reports.js";
 import Service from "./components/Service.js";
+import { CalendarProvider } from "./components/CalendarContext.js";
 
 function App() {
   return (
     <div className='App'>
       <Header></Header>
       <BookingProvider>
-        <Family />
-        <Queen />
-        <Standard />
-        <Footer />
-        <Login />
-        <Service />
-        <Reports />
+        <CalendarProvider>
+          <Family />
+          <Queen />
+          <Standard />
+          <Footer />
+          <Login />
+          <Service />
+          <Reports />
+        </CalendarProvider>
       </BookingProvider>
     </div>
   );
