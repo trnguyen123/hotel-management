@@ -4,15 +4,25 @@ import "../Style/Calendar.css";
 import { useBooking } from "./BookingContext";
 import { useCalendar } from "./CalendarContext";
 
-const Queen = () => {
-  // Lấy lịch động từ CalendarContext (đã được tạo trong Family.js)
+// Hàm định dạng thời gian chỉ lấy HH:MM
+const formatBookingTime = (bookingTime) => {
+  if (!bookingTime) return "";
+  const parts = bookingTime.split(", ");
+  if (parts.length === 2) {
+    const timeParts = parts[1].split(":");
+    if (timeParts.length >= 2) {
+      return `${timeParts[0]}:${timeParts[1]}`; // Lấy giờ và phút
+    }
+    return parts[1];
+  }
+  return bookingTime;
+};
+
+const Standard = () => {
   const { days, dayRange, getGridColumn } = useCalendar();
   const { bookings } = useBooking();
-
-  // Giữ nguyên layout ban đầu
   const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
 
-  // Danh sách phòng theo layout cũ
   const roomsList = [
     { id: 1, name: "Room 1" },
     { id: 2, name: "Room 2" },
@@ -24,38 +34,41 @@ const Queen = () => {
     { id: 8, name: "Room 8" },
   ];
 
-  // Lọc booking chỉ cho Queen Room
   const rooms = roomsList.map((room) => ({
     ...room,
     bookings: bookings.filter(
       (b) =>
-        b.details.room_type === "Queen Room" &&
+        b.details.room_type === "Standard Room" &&
         b.details.room_number === room.name
     ),
   }));
 
-  // Hàm parse ngày giữ nguyên logic ban đầu
   const parseInputDate = (dateStr) => {
     if (!dateStr) return null;
     if (dateStr.includes("-")) return new Date(dateStr);
     if (dateStr.includes("/")) {
-      const [mm, dd, yyyy] = dateStr.split("/");
+      const [dd, mm, yyyy] = dateStr.split("/");
       return new Date(`${yyyy}-${mm}-${dd}`);
     }
     return new Date(dateStr);
   };
 
-  const toggleRoomSection = () => {
-    setIsRoomSectionExpanded(!isRoomSectionExpanded);
-  };
-
   return (
-    <div className="calendar-container queen">
-      <div className="calendar-grid">
-        <div className="expand-icon" onClick={toggleRoomSection}>
+    <div className='calendar-container queen'>
+      <div className='calendar-grid'>
+        <div
+          className='expand-icon'
+          onClick={() => setIsRoomSectionExpanded(!isRoomSectionExpanded)}
+        >
           Standard Room
         </div>
-        <div className="calendar-days">
+        <div
+          className='calendar-days'
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
+          }}
+        >
           {days.map((day, index) => (
             <div
               key={index}
@@ -64,20 +77,20 @@ const Queen = () => {
               <div className={`day ${day.day === "TODAY" ? "today-text" : ""}`}>
                 {day.day}
               </div>
-              <div className="date">{day.date}</div>
-              <div className="month">{day.month}</div>
+              <div className='date'>{day.date}</div>
+              <div className='month'>{day.month}</div>
             </div>
           ))}
         </div>
         {isRoomSectionExpanded && (
-          <div className="room-section">
-            <div className="hotel-room">Standard Room</div>
-            <div className="room-grid">
+          <div className='room-section'>
+            <div className='hotel-room'>Standard Room</div>
+            <div className='room-grid'>
               {rooms.map((room) => (
-                <div key={room.id} className="room-row">
-                  <div className="room-name">{room.name}</div>
+                <div key={room.id} className='room-row'>
+                  <div className='room-name'>{room.name}</div>
                   <div
-                    className="bookings-container"
+                    className='bookings-container'
                     style={{
                       display: "grid",
                       gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
@@ -102,7 +115,7 @@ const Queen = () => {
                       return (
                         <div
                           key={index}
-                          className="booking"
+                          className='booking'
                           style={{
                             backgroundColor: booking.color,
                             gridColumn: `${startCol} / ${endCol}`,
@@ -115,12 +128,10 @@ const Queen = () => {
                             color: "white",
                             fontWeight: "bold",
                           }}
-                          onClick={() => {
-                            // Ở Queen.js chỉ hiển thị booking (không có nút tạo mới)
-                          }}
                         >
-                          <span className="search-icon">○</span>
-                          {booking.guest}
+                          <span className='search-icon'>○</span>
+                          {booking.guest} -{" "}
+                          {formatBookingTime(booking.details.booking_time)}
                         </div>
                       );
                     })}
@@ -142,4 +153,4 @@ const Queen = () => {
   );
 };
 
-export default Queen;
+export default Standard;

@@ -2,15 +2,11 @@ import React, { useState } from "react";
 import ReservationModal from "./ReservationModal";
 import "../Style/Calendar.css";
 import { useBooking } from "./BookingContext";
-import { useCalendar } from "./CalendarContext";
 
-// Hàm tạo mảng ngày động từ startDate với số ngày dayRange
+// Hàm tạo mảng ngày động
 function generateDays(startDate, dayRange) {
   const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  const monthNames = [
-    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-  ];
+  const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   const daysArray = [];
   for (let i = 0; i < dayRange; i++) {
     const d = new Date(startDate);
@@ -42,6 +38,20 @@ function parseDateInput(str) {
   return new Date(str);
 }
 
+// Hàm định dạng thời gian chỉ lấy HH:MM
+const formatBookingTime = (bookingTime) => {
+  if (!bookingTime) return "";
+  const parts = bookingTime.split(", ");
+  if (parts.length === 2) {
+    const timeParts = parts[1].split(":");
+    if (timeParts.length >= 2) {
+      return `${timeParts[0]}:${timeParts[1]}`; // Lấy giờ và phút
+    }
+    return parts[1];
+  }
+  return bookingTime;
+};
+
 const Family = () => {
   const [dayRange, setDayRange] = useState(14);
   const [startDate, setStartDate] = useState(new Date());
@@ -65,13 +75,9 @@ const Family = () => {
   const rooms = roomsList.map((room) => ({
     ...room,
     bookings: bookings.filter(
-      (b) =>
-        b.details.room_type === "Family Room" &&
-        b.details.room_number === room.name
+      (b) => b.details.room_type === "Family Room" && b.details.room_number === room.name
     ),
   }));
-
-  const [isRoomSectionExpanded, setIsRoomSectionExpanded] = useState(true);
 
   const handleDateChange = (e) => {
     const value = e.target.value;
@@ -122,21 +128,10 @@ const Family = () => {
     <div className="calendar-container">
       <div className="calendar-header">
         <div className="calendar-controls">
-          <input
-            type="date"
-            value={parseDateInput(inputDate)?.toISOString().split("T")[0] || ""}
-            onChange={handleDateChange}
-            style={{ padding: "6px" }}
-          />
-          <button className="btn-calendar" onClick={handleViewToday}>
-            Hiện tại
-          </button>
-          <button className="btn-calendar" onClick={handlePrev}>
-            Trở về
-          </button>
-          <button className="btn-calendar" onClick={handleNext}>
-            Tiếp
-          </button>
+          <input type="date" value={parseDateInput(inputDate)?.toISOString().split("T")[0] || ""} onChange={handleDateChange} style={{ padding: "6px" }} />
+          <button className="btn-calendar" onClick={handleViewToday}>Hiện tại</button>
+          <button className="btn-calendar" onClick={handlePrev}>Trở về</button>
+          <button className="btn-calendar" onClick={handleNext}>Tiếp</button>
         </div>
         <div className="right-controls">
           <select value={`${dayRange}`} onChange={handleDaysChange}>
@@ -144,26 +139,11 @@ const Family = () => {
             <option value="14">14 days</option>
             <option value="30">30 days</option>
           </select>
-          <button
-            className="add-reservation"
-            onClick={() => {
-              setSelectedBooking(null);
-              setShowReservationModal(true);
-            }}
-          >
-            + Reservation
-          </button>
+          <button className="add-reservation" onClick={() => { setSelectedBooking(null); setShowReservationModal(true); }}>+ Reservation</button>
         </div>
       </div>
       <div className="calendar-grid" style={{ overflowX: "auto" }}>
-        <div
-          className="calendar-days"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
-            minWidth: `${dayRange * 90}px`,
-          }}
-        >
+        <div className="calendar-days" style={{ display: "grid", gridTemplateColumns: `repeat(${dayRange}, 1fr)`, minWidth: `${dayRange * 90}px` }}>
           {days.map((dayObj, index) => (
             <div key={index} className={`day-column ${index === 0 ? "today" : ""}`}>
               <div className={`day ${index === 0 ? "today-text" : ""}`}>{dayObj.day}</div>
@@ -172,74 +152,57 @@ const Family = () => {
             </div>
           ))}
         </div>
-        {isRoomSectionExpanded && (
-          <div className="room-section">
-            <div className="hotel-room">Family Room</div>
-            <div className="room-grid">
-              {rooms.map((room) => (
-                <div key={room.id} className="room-row">
-                  <div className="room-name">{room.name}</div>
-                  <div
-                    className="bookings-container"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
-                      minWidth: `${dayRange * 90}px`,
-                    }}
-                  >
-                    {room.bookings.map((booking, index) => {
-                      const start = parseDateInput(booking.details.check_in_date);
-                      const end = parseDateInput(booking.details.check_out_date);
-                      const startCol = getGridColumn(start);
-                      if (!end || isNaN(end.getTime())) return null;
-                      let diffTime = end - start;
-                      let duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                      if (duration < 1) duration = 1;
-                      const endCol = startCol + duration;
-                      if (startCol <= 0) return null;
-                      return (
-                        <div
-                          key={index}
-                          className="booking"
-                          style={{
-                            backgroundColor: booking.color,
-                            gridColumn: `${startCol} / ${endCol}`,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "4px",
-                            padding: "4px",
-                            color: "white",
-                            fontWeight: "bold",
-                          }}
-                          onClick={() => {
-                            setSelectedBooking(booking);
-                            setShowReservationModal(true);
-                          }}
-                        >
-                          <div className="booking-content">{booking.guest}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
+        <div className="room-section">
+          <div className="hotel-room">Family Room</div>
+          <div className="room-grid">
+            {rooms.map((room) => (
+              <div key={room.id} className="room-row">
+                <div className="room-name">{room.name}</div>
+                <div className="bookings-container" style={{ display: "grid", gridTemplateColumns: `repeat(${dayRange}, 1fr)`, minWidth: `${dayRange * 90}px` }}>
+                  {room.bookings.map((booking, index) => {
+                    const start = parseDateInput(booking.details.check_in_date);
+                    const end = parseDateInput(booking.details.check_out_date);
+                    const startCol = getGridColumn(start);
+                    if (!end || isNaN(end.getTime())) return null;
+                    let diffTime = end - start;
+                    let duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (duration < 1) duration = 1;
+                    const endCol = startCol + duration;
+                    if (startCol <= 0) return null;
+                    return (
+                      <div
+                        key={index}
+                        className="booking"
+                        style={{
+                          backgroundColor: booking.color,
+                          gridColumn: `${startCol} / ${endCol}`,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "4px",
+                          padding: "4px",
+                          color: "white",
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => { setSelectedBooking(booking); setShowReservationModal(true); }}
+                      >
+                        <div className="booking-content">{booking.guest} - {formatBookingTime(booking.details.booking_time)}</div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
-        onBookingCreated={(booking) => {
-          addBooking(booking);
-        }}
+        onBookingCreated={(booking) => { addBooking(booking); }}
         selectedBooking={selectedBooking}
-        onBookingDetailsClosed={() => {
-          setSelectedBooking(null);
-          setShowReservationModal(false);
-        }}
+        onBookingDetailsClosed={() => { setSelectedBooking(null); setShowReservationModal(false); }}
       />
     </div>
   );
