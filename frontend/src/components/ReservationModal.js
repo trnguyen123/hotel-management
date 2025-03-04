@@ -1,32 +1,43 @@
 import React, { useState, useEffect } from "react";
 import "../Style/ReservationModal.css";
 
-/* Modal chi tiết booking */
 const BookingDetailsModal = ({ booking, onClose }) => {
   if (!booking) return null;
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className='modal-overlay' onClick={onClose}>
+      <div className='modal-content' onClick={(e) => e.stopPropagation()}>
+        <div className='modal-header'>
           <h2>Chi tiết đặt phòng</h2>
-          <button type="button" className="close-button" onClick={onClose}>
-            &times;
+          <button type='button' className='close-button' onClick={onClose}>
+            ×
           </button>
         </div>
-        <div className="modal-body">
-          <div className="section">
+        <div className='modal-body'>
+          <div className='section'>
             <h3>Thông tin khách hàng</h3>
             <p><strong>Tên:</strong> {booking.full_name}</p>
             <p>
               <strong>Giới tính:</strong>{" "}
               {booking.details.gender === "male" ? "Nam" : "Nữ"}
             </p>
-            <p><strong>SĐT:</strong> {booking.phone_number}</p>
-            <p><strong>Email:</strong> {booking.email}</p>
-            <p><strong>CMND:</strong> {booking.id_card}</p>
-            <p><strong>Địa chỉ:</strong> {booking.address}</p>
+            <p>
+              <strong>SĐT:</strong> {booking.details.phone_number}
+            </p>
+            <p>
+              <strong>Email:</strong> {booking.details.email}
+            </p>
+            <p>
+              <strong>CMND:</strong> {booking.details.id_card}
+            </p>
+            <p>
+              <strong>Địa chỉ:</strong> {booking.details.address}
+            </p>
+            <p>
+              <strong>Thời gian đặt phòng:</strong>{" "}
+              {booking.details.booking_time}
+            </p>
           </div>
-          <div className="section">
+          <div className='section'>
             <h3>Thông tin phòng</h3>
             <p><strong>Loại phòng:</strong> {booking.room_type}</p>
             <p><strong>Số phòng:</strong> {booking.room_number}</p>
@@ -153,7 +164,10 @@ const ReservationModal = ({
 
   if (selectedBooking) {
     return (
-      <BookingDetailsModal booking={selectedBooking} onClose={onBookingDetailsClosed} />
+      <BookingDetailsModal
+        booking={selectedBooking}
+        onClose={onBookingDetailsClosed}
+      />
     );
   }
 
@@ -227,62 +241,87 @@ const ReservationModal = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className='modal-overlay' onClick={onClose}>
+      <div className='modal-content' onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit}>
-          <div className="modal-header">
+          <div className='modal-header'>
             <h2>New Reservation</h2>
-            <button type="button" className="close-button" onClick={onClose}>
-              &times;
+            <button type='button' className='close-button' onClick={onClose}>
+              ×
             </button>
           </div>
-          <div className="modal-body">
-            <div className="section">
+          <div className='modal-body'>
+            <div className='section'>
               <h3>Thông Tin Khách Hàng</h3>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Họ và tên</label>
-                  <input type="text" name="full_name" required onChange={handleInputChange} />
+                  <input
+                    type='text'
+                    name='full_name'
+                    required
+                    onChange={handleInputChange}
+                  />
                 </div>
-                <div className="input-group">
+                <div className='input-group'>
                   <label>Giới tính</label>
-                  <select name="gender" onChange={handleInputChange}>
-                    <option value="male">Nam</option>
-                    <option value="female">Nữ</option>
+                  <select name='gender' onChange={handleInputChange}>
+                    <option value='male'>Nam</option>
+                    <option value='female'>Nữ</option>
                   </select>
                 </div>
               </div>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Số CMND</label>
-                  <input type="text" name="id_card" required onChange={handleInputChange} />
+                  <input
+                    type='text'
+                    name='id_card'
+                    required
+                    onChange={handleInputChange}
+                  />
                 </div>
-                <div className="input-group">
+                <div className='input-group'>
                   <label>Email</label>
-                  <input type="email" name="email" onChange={handleInputChange} />
+                  <input
+                    type='email'
+                    name='email'
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Số điện thoại</label>
-                  <input type="tel" name="phone_number" required onChange={handleInputChange} />
+                  <input
+                    type='tel'
+                    name='phone_number'
+                    required
+                    onChange={handleInputChange}
+                  />
                 </div>
-                <div className="input-group">
+                <div className='input-group'>
                   <label>Địa chỉ</label>
-                  <input type="text" name="address" onChange={handleInputChange} />
+                  <input
+                    type='text'
+                    name='address'
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
             </div>
-            <div className="section">
+            <div className='section'>
               <h3>Thông Tin Phòng</h3>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Loại phòng</label>
-                  <select name="room_type" value={formData.room_type} onChange={handleInputChange} disabled>
-                    <option value={roomType}>{roomType}</option>
+                  <select name='room_type' onChange={handleInputChange}>
+                    <option>Family Room</option>
+                    <option>Queen Room</option>
+                    <option>Standard Room</option>
                   </select>
                 </div>
-                <div className="input-group">
+                <div className='input-group'>
                   <label>Số phòng</label>
                   <select name="room_number" required onChange={handleRoomChange}>
                     <option value="">Chọn phòng</option>
@@ -294,14 +333,24 @@ const ReservationModal = ({
                   </select>
                 </div>
               </div>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Ngày nhận phòng</label>
-                  <input type="date" name="check_in_date" required onChange={handleInputChange} />
+                  <input
+                    type='date'
+                    name='check_in_date'
+                    required
+                    onChange={handleInputChange}
+                  />
                 </div>
-                <div className="input-group">
+                <div className='input-group'>
                   <label>Ngày trả phòng</label>
-                  <input type="date" name="check_out_date" required onChange={handleInputChange} />
+                  <input
+                    type='date'
+                    name='check_out_date'
+                    required
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
             </div>
@@ -327,8 +376,8 @@ const ReservationModal = ({
             </div>
             <div className="section">
               <h3>Thông Tin Thanh Toán</h3>
-              <div className="form-row">
-                <div className="input-group">
+              <div className='form-row'>
+                <div className='input-group'>
                   <label>Phương thức</label>
                   <select name="payment_method" onChange={handleInputChange}>
                     <option value="vnpay">VNPay</option>
