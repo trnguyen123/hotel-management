@@ -9,6 +9,12 @@ const port = 5000;
 const authRoutes = require('./routes/auth');
 const serviceRoutes = require('./routes/service');
 const reportRoutes = require('./routes/report');
+const bookingRoutes = require('./routes/booking');
+const roomRoutes = require('./routes/room');
+const voucherRoutes = require('./routes/voucher');
+const calendarRoutes = require('./routes/calendar');
+const customerRoutes = require('./routes/customer');
+
 // Cấu hình CORS
 const corsOptions = {
   origin: ['http://localhost:3000', 'http://localhost:5000'],
@@ -40,6 +46,11 @@ app.use(express.static(path.join(__dirname, 'assets')));
 app.use('/api/auth', authRoutes);
 app.use('/api/service', serviceRoutes);
 app.use('/api/report', reportRoutes);
+app.use('/api/booking', bookingRoutes);
+app.use('/api/room', roomRoutes);
+app.use('/api/voucher', voucherRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/customer', customerRoutes);
 
 // Khởi chạy server
 app.listen(port, () => {

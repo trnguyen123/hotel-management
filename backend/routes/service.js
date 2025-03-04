@@ -5,7 +5,7 @@ const db = require("../config/db");
 // Lấy danh sách dịch vụ từ db
 router.get("/getAll", async (req, res) => {
     try {
-        const [results] = await db.query("SELECT service_id, service_name FROM services");
+        const [results] = await db.query("SELECT * FROM services");
         res.json(results);
     } catch (error) {
       console.error("Lỗi truy vấn DB:", error);
