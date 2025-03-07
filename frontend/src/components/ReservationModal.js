@@ -3,6 +3,54 @@ import "../Style/ReservationModal.css";
 
 const BookingDetailsModal = ({ booking, onClose }) => {
   if (!booking) return null;
+  console.log("Booking Details Modal:", booking); // Log booking data
+
+  const handleCheckout = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/booking/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ booking_id: booking.booking_id }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Checkout successful:", result);
+        onClose(); 
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to checkout:", errorData);
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/booking/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ booking_id: booking.booking_id }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Cancel successful:", result);
+        onClose(); 
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to cancel:", errorData);
+      }
+    } catch (error) {
+      console.error("Error during cancellation:", error);
+    }
+  };
+
   return (
     <div className='modal-overlay' onClick={onClose}>
       <div className='modal-content' onClick={(e) => e.stopPropagation()}>
@@ -15,7 +63,7 @@ const BookingDetailsModal = ({ booking, onClose }) => {
         <div className='modal-body'>
           <div className='section'>
             <h3>Thông tin khách hàng</h3>
-            <p><strong>Tên:</strong> {booking.full_name}</p>
+            <p><strong>Tên:</strong> {booking.details.full_name}</p>
             <p>
               <strong>Giới tính:</strong>{" "}
               {booking.details.gender === "male" ? "Nam" : "Nữ"}
@@ -24,26 +72,27 @@ const BookingDetailsModal = ({ booking, onClose }) => {
               <strong>SĐT:</strong> {booking.details.phone_number}
             </p>
             <p>
-              <strong>Email:</strong> {booking.details.email}
-            </p>
-            <p>
-              <strong>CMND:</strong> {booking.details.id_card}
-            </p>
-            <p>
               <strong>Địa chỉ:</strong> {booking.details.address}
-            </p>
-            <p>
-              <strong>Thời gian đặt phòng:</strong>{" "}
-              {booking.details.booking_time}
             </p>
           </div>
           <div className='section'>
             <h3>Thông tin phòng</h3>
-            <p><strong>Loại phòng:</strong> {booking.room_type}</p>
-            <p><strong>Số phòng:</strong> {booking.room_number}</p>
-            <p><strong>Ngày nhận phòng:</strong> {booking.check_in_date}</p>
-            <p><strong>Ngày trả phòng:</strong> {booking.check_out_date}</p>
+            <p><strong>Loại phòng:</strong> {booking.room.room_type}</p>
+            <p><strong>Số phòng:</strong> {booking.room.room_number}</p>
+            <p><strong>Ngày nhận phòng:</strong> {booking.check_in}</p>
+            <p><strong>Ngày trả phòng:</strong> {booking.check_out}</p>
           </div>
+        </div>
+        <div className='modal-footer'>
+          <button type='button' onClick={handleCheckout}>
+            Trả phòng
+          </button>
+          <button type='button' onClick={handleCancel}>
+            Hủy phòng
+          </button>
+          <button type ='button'>
+            Cập nhật
+          </button>
         </div>
       </div>
     </div>
@@ -128,6 +177,11 @@ const ReservationModal = ({
     } else {
       console.warn("Không tìm thấy phòng hoặc giá phòng không hợp lệ:", selectedRoom);
     }
+    // Tính số đêm lưu trú
+    const checkInDate = new Date(formData.check_in_date);
+    const checkOutDate = new Date(formData.check_out_date);
+    const numberOfNights = (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24);
+    console.log("Number of Nights:", numberOfNights);
 
     // Tính tổng giá dịch vụ
     if (Array.isArray(formData.selected_services)) {
@@ -153,8 +207,8 @@ const ReservationModal = ({
       console.warn("Voucher không hợp lệ hoặc không có discount:", selectedVoucher);
     }
 
-    // Tính tổng tiền, đảm bảo không bị NaN
-    const total = (roomPrice + servicePrice) - ((roomPrice + servicePrice) * (discount / 100));
+    // Tính tổng tiền
+    const total = (roomPrice * numberOfNights + servicePrice) - ((roomPrice * numberOfNights + servicePrice) * (discount / 100));
     console.log("Total Price:", total);
 
     setTotalPrice(total);
@@ -229,7 +283,7 @@ const ReservationModal = ({
           guest: formData.full_name,
           color: color,
         };
-        onBookingCreated(bookingWithGuest);
+        onBookingCreated(bookingWithGuest, totalPrice);
         onClose();
       } else {
         const errorData = await response.json();

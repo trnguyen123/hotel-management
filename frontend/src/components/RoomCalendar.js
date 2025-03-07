@@ -63,6 +63,7 @@ const RoomCalendar = ({ roomType }) => {
         const bookingData = await bookingResponse.json();
 
         console.log("Booking data:", bookingData);
+
         const filteredRooms = roomData.filter((room) => room.room_type === roomType);
         setRooms(filteredRooms);
         setBookings(bookingData);
@@ -116,6 +117,13 @@ const RoomCalendar = ({ roomType }) => {
 
   const handleBookingClick = async (booking) => {
     try {
+      if (!booking.customer_id) {
+        console.error("Booking does not contain customer_id:", booking);
+        return;
+      }
+      console.log("Booking clicked:", booking); // Log booking data
+
+
       const customerResponse = await fetch(`http://localhost:5000/api/customer/${booking.customer_id}`);
       const customerData = await customerResponse.json();
 
@@ -124,15 +132,25 @@ const RoomCalendar = ({ roomType }) => {
 
       const detailedBooking = {
         ...booking,
-        customer: customerData,
+        details: customerData,
         room: roomData,
       };
+
+      console.log("Detailed Booking:", detailedBooking); // Log detailed booking data
 
       setSelectedBooking(detailedBooking);
       setShowReservationModal(true);
     } catch (error) {
       console.error("Lỗi khi lấy thông tin chi tiết booking:", error);
     }
+  };
+  const handleBookingCreated = (booking, totalPrice) => {
+    const newBooking = {
+      ...booking,
+      total_price: totalPrice,
+    };
+    setBookings([...bookings, newBooking]);
+    setShowReservationModal(false);
   };
 
   return (
@@ -219,7 +237,7 @@ const RoomCalendar = ({ roomType }) => {
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
-        onBookingCreated={() => {}}
+        onBookingCreated={handleBookingCreated} 
         selectedBooking={selectedBooking}
         onBookingDetailsClosed={() => setShowReservationModal(false)}
         roomType={roomType}

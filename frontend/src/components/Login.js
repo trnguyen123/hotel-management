@@ -55,7 +55,6 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="email">Email</label>
             <input
               type="text"
               id="email"
@@ -68,7 +67,6 @@ const LoginPage = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Mật khẩu</label>
             <input
               type="password"
               id="password"
