@@ -1,15 +1,22 @@
 .mgr-18 {
   margin-right: 18px;
   color: #000;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+.mgr-18:hover {
+  opacity: .5;
+  text-decoration: underline;
 }
 
 .Main-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #333;
+  /* background-color: #333; */
+  background-image: linear-gradient(to right, #000000, #434343);
   padding: 10px 20px;
   height: 60px;
 }
@@ -24,6 +31,10 @@
   color: #fff;
   font-size: 18px;
   font-weight: 400;
+}
+
+.front-desk:hover {
+  color: aqua; 
 }
 
 .Left-main-header {
@@ -43,15 +54,23 @@
 }
 
 .app-icon {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   margin-right: 5px;
-  
+}
+
+.my-apps {
+  margin-bottom: 5px;
+}
+
+.apps-section:hover {
+  cursor: pointer;
+  opacity: .4;
 }
 
 .my-apps,
 .bb-text,
-.profile-icon {
+.user-icon {
   color: #fff;
   font-size: 14px;
 }
@@ -61,15 +80,21 @@
   padding: 30px 30px;
 }
 
-.profile-icon {
+.user-icon {
   margin-left: 18px;
+  width: 30px;
+  height: 30px;
+}
+.user-icon:hover {
+  cursor: pointer;
+  opacity: .4;
 }
 
 .Main-menu {
   display: flex;
   align-items: center;
   padding: 10px 20px;
-  background-color: rgba(245, 238, 232, 1);
+  background-color: #f5eee8;
   border-bottom: 1px solid #ddd;
 }
 
@@ -86,6 +111,3 @@
   color: #000;
 }
 
-.list-section li:first-child {
-  border-bottom: 2px solid red;
-}

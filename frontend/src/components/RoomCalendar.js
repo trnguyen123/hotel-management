@@ -7,8 +7,18 @@ import { useCalendar } from "./CalendarContext";
 function generateDays(startDate, dayRange) {
   const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const monthNames = [
-    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
   ];
   const daysArray = [];
   for (let i = 0; i < dayRange; i++) {
@@ -56,15 +66,21 @@ const RoomCalendar = ({ roomType }) => {
   useEffect(() => {
     const fetchRoomsAndBookings = async () => {
       try {
-        const roomResponse = await fetch("http://localhost:5000/api/room/getNumberAndType");
+        const roomResponse = await fetch(
+          "http://localhost:5000/api/room/getNumberAndType"
+        );
         const roomData = await roomResponse.json();
 
-        const bookingResponse = await fetch("http://localhost:5000/api/calendar/getAll");
+        const bookingResponse = await fetch(
+          "http://localhost:5000/api/calendar/getAll"
+        );
         const bookingData = await bookingResponse.json();
 
         console.log("Booking data:", bookingData);
 
-        const filteredRooms = roomData.filter((room) => room.room_type === roomType);
+        const filteredRooms = roomData.filter(
+          (room) => room.room_type === roomType
+        );
         setRooms(filteredRooms);
         setBookings(bookingData);
       } catch (error) {
@@ -123,11 +139,14 @@ const RoomCalendar = ({ roomType }) => {
       }
       console.log("Booking clicked:", booking); // Log booking data
 
-
-      const customerResponse = await fetch(`http://localhost:5000/api/customer/${booking.customer_id}`);
+      const customerResponse = await fetch(
+        `http://localhost:5000/api/customer/${booking.customer_id}`
+      );
       const customerData = await customerResponse.json();
 
-      const roomResponse = await fetch(`http://localhost:5000/api/room/${booking.room_id}`);
+      const roomResponse = await fetch(
+        `http://localhost:5000/api/room/${booking.room_id}`
+      );
       const roomData = await roomResponse.json();
 
       const detailedBooking = {
@@ -154,7 +173,7 @@ const RoomCalendar = ({ roomType }) => {
   };
 
   return (
-    <div className="calendar-container">
+    <div className='calendar-container'>
       <CalendarControls
         onDateChange={handleDateChange}
         onViewToday={handleViewToday}
@@ -168,45 +187,59 @@ const RoomCalendar = ({ roomType }) => {
         }}
       />
 
-      <div className="calendar-grid">
-        <div className="expand-icon" onClick={toggleRoomSection}>
+      <div className='calendar-grid'>
+        <div className='expand-icon' onClick={toggleRoomSection}>
           {roomType}
         </div>
-        <div className="calendar-days">
+        <div className='calendar-days'>
           {days.map((day, index) => (
-            <div key={index} className={`day-column ${day.day === "TODAY" ? "today" : ""}`}>
-              <div className={`day ${day.day === "TODAY" ? "today-text" : ""}`}>{day.day}</div>
-              <div className="date">{day.date}</div>
-              <div className="month">{day.month}</div>
+            <div
+              key={index}
+              className={`day-column ${day.day === "TODAY" ? "today" : ""}`}
+            >
+              <div className={`day ${day.day === "TODAY" ? "today-text" : ""}`}>
+                {day.day}
+              </div>
+              <div className='date'>{day.date}</div>
+              <div className='month'>{day.month}</div>
             </div>
           ))}
         </div>
         {isRoomSectionExpanded && (
-          <div className="room-section">
-            <div className="hotel-room">{roomType}</div>
-            <div className="room-grid">
+          <div className='room-section'>
+            <div className='hotel-room'>{roomType}</div>
+            <div className='room-grid'>
               {rooms.map((room) => (
-                <div key={room.room_number} className="room-row">
-                  <div className="room-name">{room.room_number}</div>
+                <div key={room.room_number} className='room-row'>
+                  <div className='room-name'>{room.room_number}</div>
                   <div
-                    className="bookings-container"
-                    style={{ display: "grid", gridTemplateColumns: `repeat(${dayRange}, 1fr)` }}
+                    className='bookings-container'
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${dayRange}, 1fr)`,
+                    }}
                   >
                     {bookings
                       .filter((booking) => booking.room === room.room_number)
                       .map((booking, index) => {
                         const startDate = parseDateInput(booking.check_in);
                         const endDate = parseDateInput(booking.check_out);
-                        const startCol = getGridColumn(startDate, startDate, dayRange);
+                        const startCol = getGridColumn(
+                          startDate,
+                          startDate,
+                          dayRange
+                        );
                         if (!endDate || isNaN(endDate.getTime())) return null;
-                        let duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                        let duration = Math.ceil(
+                          (endDate - startDate) / (1000 * 60 * 60 * 24)
+                        );
                         if (duration < 1) duration = 1;
                         const endCol = startCol + duration;
                         if (startCol <= 0) return null;
                         return (
                           <div
                             key={index}
-                            className="booking"
+                            className='booking'
                             style={{
                               backgroundColor: booking.color,
                               gridColumn: `${startCol} / ${endCol}`,
@@ -221,7 +254,7 @@ const RoomCalendar = ({ roomType }) => {
                             }}
                             onClick={() => handleBookingClick(booking)}
                           >
-                            <span className="search-icon">○</span>
+                            <span className='search-icon'>○</span>
                             {booking.customer}
                           </div>
                         );
@@ -237,11 +270,11 @@ const RoomCalendar = ({ roomType }) => {
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
-        onBookingCreated={handleBookingCreated} 
+        onBookingCreated={handleBookingCreated}
         selectedBooking={selectedBooking}
         onBookingDetailsClosed={() => setShowReservationModal(false)}
         roomType={roomType}
-        rooms={rooms.map(room => room.room_number)} 
+        rooms={rooms.map((room) => room.room_number)}
       />
     </div>
   );

@@ -12,8 +12,18 @@ export const CalendarProvider = ({ children }) => {
   const generateDays = (start, count) => {
     const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const monthNames = [
-      "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
     ];
     const days = [];
     for (let i = 0; i < count; i++) {
@@ -41,7 +51,16 @@ export const CalendarProvider = ({ children }) => {
   };
 
   return (
-    <CalendarContext.Provider value={{ startDate, setStartDate, dayRange, setDayRange, days, getGridColumn }}>
+    <CalendarContext.Provider
+      value={{
+        startDate,
+        setStartDate,
+        dayRange,
+        setDayRange,
+        days,
+        getGridColumn,
+      }}
+    >
       {children}
     </CalendarContext.Provider>
   );

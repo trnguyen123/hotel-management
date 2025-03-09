@@ -4,7 +4,7 @@ import "../Style/Service.css";
 function Service() {
   const [formData, setFormData] = useState({
     serviceName: "",
-    quantity: "",  // Đổi từ createdDate thành quantity
+    quantity: "", // Đổi từ createdDate thành quantity
     roomNumber: "",
     customerName: "",
   });
@@ -41,7 +41,7 @@ function Service() {
 
     const requestData = {
       service_name: formData.serviceName,
-      quantity: formData.quantity,  // Gửi số lượng thay vì ngày tạo
+      quantity: formData.quantity, // Gửi số lượng thay vì ngày tạo
       room_number: formData.roomNumber,
       customer_name: formData.customerName,
     };
@@ -73,23 +73,23 @@ function Service() {
   };
 
   return (
-    <div className="service-container">
-      <div className="service-form">
-        <h2 className="service-title">Little Hotelier</h2>
-        <p className="service-subtitle">Front desk management system</p>
+    <div className='service-container'>
+      <div className='service-form'>
+        <h2 className='service-title'>Little Hotelier</h2>
+        <p className='service-subtitle'>Front desk management system</p>
 
         <form onSubmit={handleSubmit}>
           {/* Chọn dịch vụ */}
-          <div className="input-group">
-            <label htmlFor="serviceName">Tên dịch vụ</label>
+          <div className='input-group'>
+            <label htmlFor='serviceName'>Tên dịch vụ</label>
             <select
-              id="serviceName"
-              name="serviceName"
+              id='serviceName'
+              name='serviceName'
               value={formData.serviceName}
               onChange={handleChange}
               required
             >
-              <option value="">Chọn dịch vụ</option>
+              <option value=''>Chọn dịch vụ</option>
               {services.map((service) => (
                 <option key={service.service_id} value={service.service_name}>
                   {service.service_name}
@@ -99,28 +99,28 @@ function Service() {
           </div>
 
           {/* Nhập số lượng */}
-          <div className="input-group">
-            <label htmlFor="quantity">Số lượng</label>
+          <div className='input-group'>
+            <label htmlFor='quantity'>Số lượng</label>
             <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              placeholder="Nhập số lượng"
+              type='number'
+              id='quantity'
+              name='quantity'
+              placeholder='Nhập số lượng'
               value={formData.quantity}
               onChange={handleChange}
-              min="1"
+              min='1'
               required
             />
           </div>
 
           {/* Nhập số phòng */}
-          <div className="input-group">
-            <label htmlFor="roomNumber">Số phòng</label>
+          <div className='input-group'>
+            <label htmlFor='roomNumber'>Số phòng</label>
             <input
-              type="text"
-              id="roomNumber"
-              name="roomNumber"
-              placeholder="Nhập số phòng"
+              type='text'
+              id='roomNumber'
+              name='roomNumber'
+              placeholder='Nhập số phòng'
               value={formData.roomNumber}
               onChange={handleChange}
               required
@@ -128,20 +128,20 @@ function Service() {
           </div>
 
           {/* Nhập tên khách hàng */}
-          <div className="input-group">
-            <label htmlFor="customerName">Tên khách hàng</label>
+          <div className='input-group'>
+            <label htmlFor='customerName'>Tên khách hàng</label>
             <input
-              type="text"
-              id="customerName"
-              name="customerName"
-              placeholder="Nhập tên khách hàng"
+              type='text'
+              id='customerName'
+              name='customerName'
+              placeholder='Nhập tên khách hàng'
               value={formData.customerName}
               onChange={handleChange}
               required
             />
           </div>
 
-          <button type="submit" className="service-button">
+          <button type='submit' className='service-button'>
             Tạo dịch vụ
           </button>
         </form>

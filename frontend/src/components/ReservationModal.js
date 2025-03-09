@@ -7,18 +7,21 @@ const BookingDetailsModal = ({ booking, onClose }) => {
 
   const handleCheckout = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/booking/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ booking_id: booking.booking_id }),
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/booking/checkout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ booking_id: booking.booking_id }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
         console.log("Checkout successful:", result);
-        onClose(); 
+        onClose();
       } else {
         const errorData = await response.json();
         console.error("Failed to checkout:", errorData);
@@ -41,7 +44,7 @@ const BookingDetailsModal = ({ booking, onClose }) => {
       if (response.ok) {
         const result = await response.json();
         console.log("Cancel successful:", result);
-        onClose(); 
+        onClose();
       } else {
         const errorData = await response.json();
         console.error("Failed to cancel:", errorData);
@@ -63,7 +66,9 @@ const BookingDetailsModal = ({ booking, onClose }) => {
         <div className='modal-body'>
           <div className='section'>
             <h3>Thông tin khách hàng</h3>
-            <p><strong>Tên:</strong> {booking.details.full_name}</p>
+            <p>
+              <strong>Tên:</strong> {booking.details.full_name}
+            </p>
             <p>
               <strong>Giới tính:</strong>{" "}
               {booking.details.gender === "male" ? "Nam" : "Nữ"}
@@ -77,10 +82,18 @@ const BookingDetailsModal = ({ booking, onClose }) => {
           </div>
           <div className='section'>
             <h3>Thông tin phòng</h3>
-            <p><strong>Loại phòng:</strong> {booking.room.room_type}</p>
-            <p><strong>Số phòng:</strong> {booking.room.room_number}</p>
-            <p><strong>Ngày nhận phòng:</strong> {booking.check_in}</p>
-            <p><strong>Ngày trả phòng:</strong> {booking.check_out}</p>
+            <p>
+              <strong>Loại phòng:</strong> {booking.room.room_type}
+            </p>
+            <p>
+              <strong>Số phòng:</strong> {booking.room.room_number}
+            </p>
+            <p>
+              <strong>Ngày nhận phòng:</strong> {booking.check_in}
+            </p>
+            <p>
+              <strong>Ngày trả phòng:</strong> {booking.check_out}
+            </p>
           </div>
         </div>
         <div className='modal-footer'>
@@ -90,9 +103,7 @@ const BookingDetailsModal = ({ booking, onClose }) => {
           <button type='button' onClick={handleCancel}>
             Hủy phòng
           </button>
-          <button type ='button'>
-            Cập nhật
-          </button>
+          <button type='button'>Cập nhật</button>
         </div>
       </div>
     </div>
@@ -150,7 +161,9 @@ const ReservationModal = ({
     };
 
     const fetchRooms = async () => {
-      const response = await fetch("http://localhost:5000/api/room/getNumberAndType");
+      const response = await fetch(
+        "http://localhost:5000/api/room/getNumberAndType"
+      );
       const data = await response.json();
       setRoomList(data);
     };
@@ -170,12 +183,17 @@ const ReservationModal = ({
     let discount = 0;
 
     // Tìm giá phòng
-    const selectedRoom = roomList.find(room => String(room.room_id) === String(formData.room_id));
+    const selectedRoom = roomList.find(
+      (room) => String(room.room_id) === String(formData.room_id)
+    );
     console.log("Selected Room:", selectedRoom);
     if (selectedRoom && !isNaN(parseFloat(selectedRoom.price))) {
       roomPrice = parseFloat(selectedRoom.price);
     } else {
-      console.warn("Không tìm thấy phòng hoặc giá phòng không hợp lệ:", selectedRoom);
+      console.warn(
+        "Không tìm thấy phòng hoặc giá phòng không hợp lệ:",
+        selectedRoom
+      );
     }
     // Tính số đêm lưu trú
     const checkInDate = new Date(formData.check_in_date);
@@ -185,30 +203,47 @@ const ReservationModal = ({
 
     // Tính tổng giá dịch vụ
     if (Array.isArray(formData.selected_services)) {
-      formData.selected_services.forEach(serviceName => {
+      formData.selected_services.forEach((serviceName) => {
         console.log("Checking service:", serviceName);
-        const service = services.find(s => s.service_name === serviceName);
+        const service = services.find((s) => s.service_name === serviceName);
         console.log("Matched Service:", service);
         if (service && !isNaN(parseFloat(service.price))) {
           servicePrice += parseFloat(service.price);
         } else {
-          console.warn("Không tìm thấy dịch vụ hoặc giá dịch vụ không hợp lệ:", serviceName);
+          console.warn(
+            "Không tìm thấy dịch vụ hoặc giá dịch vụ không hợp lệ:",
+            serviceName
+          );
         }
       });
     } else {
-      console.warn("Danh sách dịch vụ không hợp lệ:", formData.selected_services);
+      console.warn(
+        "Danh sách dịch vụ không hợp lệ:",
+        formData.selected_services
+      );
     }
 
     // Tính giảm giá
-    const selectedVoucher = vouchers.find(voucher => voucher.voucher_code === formData.voucher_code);
-    if (selectedVoucher && !isNaN(parseFloat(selectedVoucher.discount_percentage))) {
+    const selectedVoucher = vouchers.find(
+      (voucher) => voucher.voucher_code === formData.voucher_code
+    );
+    if (
+      selectedVoucher &&
+      !isNaN(parseFloat(selectedVoucher.discount_percentage))
+    ) {
       discount = parseFloat(selectedVoucher.discount_percentage);
     } else {
-      console.warn("Voucher không hợp lệ hoặc không có discount:", selectedVoucher);
+      console.warn(
+        "Voucher không hợp lệ hoặc không có discount:",
+        selectedVoucher
+      );
     }
 
     // Tính tổng tiền
-    const total = (roomPrice * numberOfNights + servicePrice) - ((roomPrice * numberOfNights + servicePrice) * (discount / 100));
+    const total =
+      roomPrice * numberOfNights +
+      servicePrice -
+      (roomPrice * numberOfNights + servicePrice) * (discount / 100);
     console.log("Total Price:", total);
 
     setTotalPrice(total);
@@ -240,7 +275,7 @@ const ReservationModal = ({
 
   const handleRoomChange = (e) => {
     const { value } = e.target;
-    const selectedRoom = roomList.find(room => room.room_number === value);
+    const selectedRoom = roomList.find((room) => room.room_number === value);
     setFormData((prev) => ({
       ...prev,
       room_number: value,
@@ -377,8 +412,12 @@ const ReservationModal = ({
                 </div>
                 <div className='input-group'>
                   <label>Số phòng</label>
-                  <select name="room_number" required onChange={handleRoomChange}>
-                    <option value="">Chọn phòng</option>
+                  <select
+                    name='room_number'
+                    required
+                    onChange={handleRoomChange}
+                  >
+                    <option value=''>Chọn phòng</option>
                     {roomList.map((room, index) => (
                       <option key={index} value={room.room_number}>
                         {room.room_number}
@@ -408,16 +447,16 @@ const ReservationModal = ({
                 </div>
               </div>
             </div>
-            <div className="section">
+            <div className='section'>
               <h3>Dịch Vụ Bổ Sung</h3>
               {services.length > 0 ? (
                 services.map((service, index) => (
-                  <div className="form-row" key={index}>
-                    <div className="input-group">
+                  <div className='form-row' key={index}>
+                    <div className='input-group'>
                       <label>{service.service_name}</label>
                       <input
-                        type="checkbox"
-                        name="selected_services"
+                        type='checkbox'
+                        name='selected_services'
                         value={service.service_name}
                         onChange={handleInputChange}
                       />
@@ -428,40 +467,41 @@ const ReservationModal = ({
                 <p>Không có dịch vụ bổ sung</p>
               )}
             </div>
-            <div className="section">
+            <div className='section'>
               <h3>Thông Tin Thanh Toán</h3>
               <div className='form-row'>
                 <div className='input-group'>
                   <label>Phương thức</label>
-                  <select name="payment_method" onChange={handleInputChange}>
-                    <option value="vnpay">VNPay</option>
-                    <option value="paypal">PayPal</option>
+                  <select name='payment_method' onChange={handleInputChange}>
+                    <option value='vnpay'>VNPay</option>
+                    <option value='paypal'>PayPal</option>
                   </select>
                 </div>
-                <div className="section">
+                <div className='section'>
                   <h3>Voucher</h3>
-                  <div className="input-group">
+                  <div className='input-group'>
                     <label>Mã Voucher</label>
-                    <select name="voucher_code" onChange={handleInputChange}>
-                      <option value="">Chọn mã giảm giá</option>
+                    <select name='voucher_code' onChange={handleInputChange}>
+                      <option value=''>Chọn mã giảm giá</option>
                       {vouchers.map((voucher, index) => (
                         <option key={index} value={voucher.voucher_code}>
-                          {voucher.voucher_code} - {voucher.discount_percentage}%
+                          {voucher.voucher_code} - {voucher.discount_percentage}
+                          %
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
               </div>
-              <div className="section">
+              <div className='section'>
                 <h3>Tổng Tiền</h3>
                 <p>{totalPrice.toLocaleString()} VND</p>
               </div>
-              <div className="modal-footer">
-                <button type="button" onClick={onClose}>
+              <div className='modal-footer'>
+                <button type='button' onClick={onClose}>
                   Huỷ bỏ
                 </button>
-                <button type="submit" className="confirm-button">
+                <button type='submit' className='confirm-button'>
                   Xác nhận đặt phòng
                 </button>
               </div>

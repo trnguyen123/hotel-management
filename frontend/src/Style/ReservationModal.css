@@ -124,7 +124,7 @@
 }
 
 .modal-footer button.confirm-button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
 }
 
@@ -141,12 +141,12 @@
 .timeline-bar {
   position: absolute;
   height: 100%;
-  background-color: #FFA500; /* Màu mặc định cho thanh toán tín dụng/chuyển khoản */
+  background-color: #ffa500; /* Màu mặc định cho thanh toán tín dụng/chuyển khoản */
   opacity: 0.8;
 }
 
 .timeline-bar.cash {
-  background-color: #4CAF50; /* Màu cho thanh toán tiền mặt */
+  background-color: #4caf50; /* Màu cho thanh toán tiền mặt */
 }
 
 .timeline-label {
