@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db"); 
+const db = require("../config/db");
 
 // Lấy danh sách dịch vụ từ db
 router.get("/getAll", async (req, res) => {
@@ -8,10 +8,71 @@ router.get("/getAll", async (req, res) => {
         const [results] = await db.query("SELECT * FROM services");
         res.json(results);
     } catch (error) {
-      console.error("Lỗi truy vấn DB:", error);
-      res.status(500).json({ error: "Lỗi khi lấy dữ liệu từ DB" });
+        console.error("Lỗi truy vấn DB:", error);
+        res.status(500).json({ error: "Lỗi khi lấy dữ liệu từ DB" });
     }
 });
+
+// Tạo dịch vụ mới
+router.post("/create", async (req, res) => {
+    const { service_name, price } = req.body;
+
+    if (!service_name || !price) {
+        return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
+    }
+
+    try {
+        const [result] = await db.execute(
+            "INSERT INTO services (service_name, price) VALUES (?, ?)",
+            [service_name, price]
+        );
+        res.status(201).json({ message: "Dịch vụ đã được thêm!", service_id: result.insertId });
+    } catch (error) {
+        console.error("Lỗi khi thêm dịch vụ:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+});
+
+// Sửa thông tin dịch vụ
+router.put("/update/:service_id", async (req, res) => {
+    const { service_id } = req.params;
+    const { service_name, price } = req.body;
+
+    if (!service_name || !price) {
+        return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
+    }
+
+    try {
+        const [result] = await db.execute(
+            "UPDATE services SET service_name = ?, price = ? WHERE service_id = ?",
+            [service_name, price, service_id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Dịch vụ không tồn tại!" });
+        }
+        res.json({ message: "Thông tin dịch vụ đã được cập nhật!" });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật thông tin dịch vụ:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+});
+
+// Xóa dịch vụ
+router.delete("/delete/:service_id", async (req, res) => {
+    const { service_id } = req.params;
+
+    try {
+        const [result] = await db.execute("DELETE FROM services WHERE service_id = ?", [service_id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Dịch vụ không tồn tại!" });
+        }
+        res.json({ message: "Dịch vụ đã được xóa!" });
+    } catch (error) {
+        console.error("Lỗi khi xóa dịch vụ:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+});
+
 // Tạo dịch vụ mới
 router.post("/use", async (req, res) => {
     const { service_name, quantity, room_number, customer_name } = req.body;
@@ -81,5 +142,4 @@ router.post("/use", async (req, res) => {
     }
 });
 
-  
 module.exports = router;

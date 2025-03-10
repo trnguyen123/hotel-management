@@ -124,7 +124,7 @@
 }
 
 .modal-footer button.confirm-button {
-  background-color: #4caf50;
+  background-color: #4CAF50;
   color: white;
 }
 
@@ -141,12 +141,12 @@
 .timeline-bar {
   position: absolute;
   height: 100%;
-  background-color: #ffa500; /* Màu mặc định cho thanh toán tín dụng/chuyển khoản */
+  background-color: #FFA500; /* Màu mặc định cho thanh toán tín dụng/chuyển khoản */
   opacity: 0.8;
 }
 
 .timeline-bar.cash {
-  background-color: #4caf50; /* Màu cho thanh toán tiền mặt */
+  background-color: #4CAF50; /* Màu cho thanh toán tiền mặt */
 }
 
 .timeline-label {
@@ -187,4 +187,73 @@
   margin: 5px 0;
   color: #555;
   font-size: 14px;
+}
+
+.payment-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.payment-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.payment-column h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
+  font-size: 18px;
+}
+
+.payment-column .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-column .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.payment-column .input-group label {
+  color: #666;
+  font-size: 14px;
+}
+
+.payment-column .input-group select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.total-price-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+}
+
+.total-price-column h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
+  font-size: 18px;
+}
+
+.total-price-column p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 16px;
+  font-weight: bold;
 }

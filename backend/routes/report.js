@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-// Tạo báo cáo mới
+// API tạo báo cáo mới
 router.post("/create", async (req, res) => {
     const { report_content, room_number } = req.body;
 
@@ -30,6 +30,27 @@ router.post("/create", async (req, res) => {
         res.status(201).json({ message: "Báo cáo đã được tạo!", report_id: result.insertId });
     } catch (error) {
         console.error("Lỗi khi tạo báo cáo:", error);
+        res.status(500).json({ message: "Lỗi server!" });
+    }
+});
+
+// API lấy danh sách tất cả các report
+router.get("/getAll", async (req, res) => {
+    try {
+        const [reports] = await db.execute(`
+            SELECT 
+                r.report_id,
+                r.report_content,
+                r.room_id,
+                r.generated_at,
+                rm.room_number
+            FROM reports r
+            JOIN rooms rm ON r.room_id = rm.room_id
+        `);
+
+        res.status(200).json(reports);
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách báo cáo:", error);
         res.status(500).json({ message: "Lỗi server!" });
     }
 });
