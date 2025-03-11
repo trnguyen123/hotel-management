@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../Style/Login.css";
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
@@ -34,7 +34,7 @@ const LoginPage = () => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         alert("Đăng nhập thành công!");
-        window.location.href = "/"; // Chuyển hướng sau đăng nhập
+        onLogin(data.user); // Truyền thông tin người dùng lên App.js
       } else {
         setError(data.message);
       }
@@ -44,51 +44,51 @@ const LoginPage = () => {
   };
 
   return (
-    <div className='login-container'>
-      <div className='login-box'>
-        <div className='login-header'>
+    <div className="login-container">
+      <div className="login-box">
+        <div className="login-header">
           <h1>Little Hotelier</h1>
           <p>Front desk management system</p>
         </div>
 
-        {error && <p className='error-message'>{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
-        <form onSubmit={handleSubmit} className='login-form'>
-          <div className='form-group'>
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
             <input
-              type='text'
-              id='email'
-              name='email'
+              type="text"
+              id="email"
+              name="email"
               value={loginData.email}
               onChange={handleChange}
-              placeholder='Nhập email'
+              placeholder="Nhập email"
               required
             />
           </div>
 
-          <div className='form-group'>
+          <div className="form-group">
             <input
-              type='password'
-              id='password'
-              name='password'
+              type="password"
+              id="password"
+              name="password"
               value={loginData.password}
               onChange={handleChange}
-              placeholder='Nhập mật khẩu'
+              placeholder="Nhập mật khẩu"
               required
             />
           </div>
 
-          <div className='form-footer'>
-            <div className='remember-me'>
-              <input type='checkbox' id='remember' />
-              <label htmlFor='remember'>Ghi nhớ đăng nhập</label>
+          <div className="form-footer">
+            <div className="remember-me">
+              <input type="checkbox" id="remember" />
+              <label htmlFor="remember">Ghi nhớ đăng nhập</label>
             </div>
-            <a href='#' className='forgot-password'>
+            <a href="#" className="forgot-password">
               Quên mật khẩu?
             </a>
           </div>
 
-          <button type='submit' className='login-button'>
+          <button type="submit" className="login-button">
             Đăng nhập
           </button>
         </form>
