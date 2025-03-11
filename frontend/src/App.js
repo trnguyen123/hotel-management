@@ -72,7 +72,7 @@ function App() {
       <Header onChangePage={changePage} currentPage={currentPage} user={user} onLogout={handleLogout} />
       {user.role === "receptionist" && (currentPage === "Calendar" || currentPage === "Service") && renderPage()}
       {user.role === "service_staff" && (currentPage === "Service" || currentPage === "Reports") && renderPage()}
-      {user.role === "staff_manager" && renderPage()}
+      {user.role === "manager" && renderPage()}
       <Footer />
     </div>
   );
