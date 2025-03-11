@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db"); // Lấy db đã sửa
+const db = require("../config/db"); 
 
 router.get("/getAll", async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT b.booking_id, r.room_number, b.check_in_date, b.check_out_date, b.status, c.full_name, b.customer_id, b.room_id
+            SELECT b.booking_id, r.room_number, b.check_in_date, b.check_out_date, b.status, c.full_name, b.customer_id, b.room_id, b.payment_method
             FROM bookings b
             JOIN customers c ON b.customer_id = c.customer_id
             JOIN rooms r ON b.room_id = r.room_id
@@ -21,7 +21,8 @@ router.get("/getAll", async (req, res) => {
             status: booking.status,
             color: booking.status === 'booked' ? 'green' : 'orange',
             customer_id: booking.customer_id, 
-            room_id: booking.room_id
+            room_id: booking.room_id,
+            payment_method: booking.payment_method 
         }));
 
         res.json(formattedData);

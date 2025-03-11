@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header.js";
 import { BookingProvider } from "./components/BookingContext.js";
 import Rooms from "./components/Rooms.js";
@@ -25,15 +25,24 @@ function App() {
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   // Hàm để xử lý đăng xuất
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUser(null);
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
   };
+
+  // Kiểm tra `localStorage` khi ứng dụng khởi động
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   // Render trang phù hợp dựa trên currentPage và vai trò của người dùng
   const renderPage = () => {

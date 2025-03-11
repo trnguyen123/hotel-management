@@ -326,6 +326,7 @@ const ReservationModal = ({
       check_out_date: formatDate(formData.check_out_date), // Chuyển đổi ngày tháng
       total_price: totalPrice,
       payment_status: "pending",
+      payment_method: formData.payment_method, // Thêm payment_method vào bookingDetails
     };
     console.log("Booking Details:", bookingDetails); // Log the booking details
 
@@ -502,6 +503,7 @@ const ReservationModal = ({
                     <select name="payment_method" onChange={handleInputChange}>
                       <option value="vnpay">VNPay</option>
                       <option value="paypal">PayPal</option>
+                      <option value="cash">Cash</option>
                     </select>
                   </div>
                   <div className="input-group">

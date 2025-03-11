@@ -59,37 +59,37 @@ const RoomCalendar = ({ roomType }) => {
         const roomResponse = await fetch("http://localhost:5000/api/room/getNumberAndType");
         const roomData = await roomResponse.json();
         console.log("Room data:", roomData);
-  
+
         const bookingResponse = await fetch("http://localhost:5000/api/calendar/getAll");
         const bookingData = await bookingResponse.json();
         console.log("Booking data:", bookingData);
-  
+
         const roomMap = {};
         roomData.forEach(room => {
           roomMap[room.room_number] = room.room_type;
         });
-  
+
         const updatedBookingData = bookingData.map(booking => ({
           ...booking,
           room_type: roomMap[booking.room] || "Unknown"
         }));
-  
+
         console.log("Updated Booking Data:", updatedBookingData);
-  
+
         const filteredRooms = roomData.filter(room => room.room_type === roomType);
         console.log("Filtered Rooms:", filteredRooms);
-  
+
         setRooms(filteredRooms);
         setBookings(updatedBookingData);
-        
+
       } catch (error) {
         console.error("Lỗi khi lấy danh sách phòng và booking:", error);
       }
     };
-  
+
     fetchRoomsAndBookings();
   }, [roomType]);
-  
+
   const handleDateChange = (e) => {
     const value = e.target.value;
     setInputDate(value);
@@ -250,7 +250,7 @@ const RoomCalendar = ({ roomType }) => {
                             onClick={() => handleBookingClick(booking)}
                           >
                             <span className="search-icon">○</span>
-                            {booking.customer}
+                            {booking.customer} - {booking.payment_method} {/* Hiển thị thêm payment_method */}
                           </div>
                         );
                       })}
@@ -269,7 +269,7 @@ const RoomCalendar = ({ roomType }) => {
         selectedBooking={selectedBooking}
         onBookingDetailsClosed={() => setShowReservationModal(false)}
         roomType={roomType} // Truyền roomType vào ReservationModal
-        rooms={rooms.map(room => room.room_number)} 
+        rooms={rooms.map(room => room.room_number)}
       />
     </div>
   );
