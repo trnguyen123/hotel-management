@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "config": "^3.3.12",
+    "confit": "^3.0.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "mysql2": "^3.12.0"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../Style/ReservationModal.css";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const formatDateTime = (dateString) => {
   const options = {
@@ -173,7 +174,7 @@ const ReservationModal = ({
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      room_type: roomType, // Cố định loại phòng khi mở modal
+      room_type: roomType,
     }));
   }, [roomType]);
 
@@ -221,63 +222,34 @@ const ReservationModal = ({
     let servicePrice = 0;
     let discount = 0;
 
-    // Tìm giá phòng
     const selectedRoom = roomList.find(room => String(room.room_id) === String(formData.room_id));
-    console.log("Selected Room:", selectedRoom);
     if (selectedRoom && !isNaN(parseFloat(selectedRoom.price))) {
       roomPrice = parseFloat(selectedRoom.price);
-    } else {
-      console.warn("Không tìm thấy phòng hoặc giá phòng không hợp lệ:", selectedRoom);
     }
-    // Tính số đêm lưu trú
+
     const checkInDate = new Date(formData.check_in_date);
     const checkOutDate = new Date(formData.check_out_date);
     const numberOfNights = (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24);
-    console.log("Number of Nights:", numberOfNights);
 
-    // Tính tổng giá dịch vụ
-    if (Array.isArray(formData.selected_services)) {
-      formData.selected_services.forEach(serviceName => {
-        console.log("Checking service:", serviceName);
-        const service = services.find(s => s.service_name === serviceName);
-        console.log("Matched Service:", service);
-        if (service && !isNaN(parseFloat(service.price))) {
-          servicePrice += parseFloat(service.price);
-        } else {
-          console.warn("Không tìm thấy dịch vụ hoặc giá dịch vụ không hợp lệ:", serviceName);
-        }
-      });
-    } else {
-      console.warn("Danh sách dịch vụ không hợp lệ:", formData.selected_services);
-    }
+    formData.selected_services.forEach(serviceName => {
+      const service = services.find(s => s.service_name === serviceName);
+      if (service && !isNaN(parseFloat(service.price))) {
+        servicePrice += parseFloat(service.price);
+      }
+    });
 
-    // Tính giảm giá
     const selectedVoucher = vouchers.find(voucher => voucher.voucher_code === formData.voucher_code);
     if (selectedVoucher && !isNaN(parseFloat(selectedVoucher.discount_percentage))) {
       discount = parseFloat(selectedVoucher.discount_percentage);
-    } else {
-      console.warn("Voucher không hợp lệ hoặc không có discount:", selectedVoucher);
     }
 
-    // Tính tổng tiền
     const total = (roomPrice * numberOfNights + servicePrice) - ((roomPrice * numberOfNights + servicePrice) * (discount / 100));
-    console.log("Total Price:", total);
-
     setTotalPrice(total);
   };
 
   const totalPriceUSD = totalPrice * exchangeRate;
 
   if (!isOpen) return null;
-
-  if (selectedBooking) {
-    return (
-      <BookingDetailsModal
-        booking={selectedBooking}
-        onClose={onBookingDetailsClosed}
-      />
-    );
-  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -322,13 +294,44 @@ const ReservationModal = ({
       address: formData.address,
       room_id: formData.room_id,
       room_type: formData.room_type,
-      check_in_date: formatDate(formData.check_in_date), // Chuyển đổi ngày tháng
-      check_out_date: formatDate(formData.check_out_date), // Chuyển đổi ngày tháng
+      check_in_date: formatDate(formData.check_in_date),
+      check_out_date: formatDate(formData.check_out_date),
       total_price: totalPrice,
       payment_status: "pending",
-      payment_method: formData.payment_method, // Thêm payment_method vào bookingDetails
+      payment_method: formData.payment_method,
     };
-    console.log("Booking Details:", bookingDetails); // Log the booking details
+
+    if (formData.payment_method === "paypal") {
+      return;
+    }
+
+    if (formData.payment_method === "vnpay") {
+      try {
+        const response = await fetch("http://localhost:5000/api/vnpay/create_payment_url", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: totalPrice,
+            customerId: formData.id_card,
+            roomIds: [formData.room_id],
+            language: "vn",
+          }),
+        });
+
+        if (response.ok) {
+          const { paymentUrl } = await response.json();
+          window.location.href = paymentUrl;
+        } else {
+          const errorData = await response.json();
+          console.error("Failed to create VNPay payment URL:", errorData);
+        }
+      } catch (error) {
+        console.error("Error creating VNPay payment URL:", error);
+      }
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5000/api/booking/create", {
@@ -348,7 +351,52 @@ const ReservationModal = ({
         };
         onBookingCreated(bookingWithGuest, totalPrice);
         onClose();
-        window.location.reload(); // Reload the page to reflect the changes
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to create booking:", errorData);
+      }
+    } catch (error) {
+      console.error("Error creating booking:", error);
+    }
+  };
+
+  const handlePayPalSuccess = async (details, data) => {
+    const bookingDetails = {
+      full_name: formData.full_name,
+      gender: formData.gender,
+      cmnd: formData.id_card,
+      email: formData.email,
+      phone: formData.phone_number,
+      address: formData.address,
+      room_id: formData.room_id,
+      room_type: formData.room_type,
+      check_in_date: formatDate(formData.check_in_date),
+      check_out_date: formatDate(formData.check_out_date),
+      total_price: totalPrice,
+      payment_status: "paid",
+      payment_method: formData.payment_method,
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/api/booking/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingDetails),
+      });
+
+      if (response.ok) {
+        const booking = await response.json();
+        const bookingWithGuest = {
+          ...booking,
+          guest: formData.full_name,
+          color: "#FFA500",
+        };
+        onBookingCreated(bookingWithGuest, totalPrice);
+        onClose();
+        window.location.reload();
       } else {
         const errorData = await response.json();
         console.error("Failed to create booking:", errorData);
@@ -503,7 +551,7 @@ const ReservationModal = ({
                     <select name="payment_method" onChange={handleInputChange}>
                       <option value="vnpay">VNPay</option>
                       <option value="paypal">PayPal</option>
-                      <option value="cash">Cash</option>
+                      <option value="cash">Tiền mặt</option>
                     </select>
                   </div>
                   <div className="input-group">
@@ -531,12 +579,32 @@ const ReservationModal = ({
               <button type="button" onClick={onClose}>
                 Huỷ bỏ
               </button>
-              <button type="submit" className="confirm-button">
-                Xác nhận đặt phòng
-              </button>               
+              {formData.payment_method === "paypal" ? (
+                <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID }}>
+                  <PayPalButtons
+                    style={{ layout: "vertical" }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        purchase_units: [{
+                          amount: {
+                            value: totalPriceUSD.toFixed(2)
+                          }
+                        }]
+                      });
+                    }}
+                    onApprove={(data, actions) => {
+                      return actions.order.capture().then(handlePayPalSuccess);
+                    }}
+                  />
+                </PayPalScriptProvider>
+              ) : (
+                <button type="submit" className="confirm-button">
+                  Xác nhận đặt phòng
+                </button>
+              )}
             </div>
           </div>
-        </form>        
+        </form>
       </div>
     </div>
   );

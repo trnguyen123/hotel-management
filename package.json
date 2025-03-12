@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node backend/server.js",
+    "server": "cross-env NODE_CONFIG_DIR=./backend/config node backend/server.js",
     "client": "npm start --prefix frontend"
   },
   "devDependencies": {
@@ -12,17 +12,20 @@
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/react-paypal-js": "^8.8.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "mysql2": "^3.12.0",
     "nodemailer": "^6.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
+    "react-paypal-js": "^0.0.1-security",
     "react-router-dom": "^6.17.0",
     "react-scripts": "^5.0.1",
     "web-vitals": "^4.2.4"

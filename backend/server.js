@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 require('dotenv').config({ path: __dirname + '/.env' });
+
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
@@ -14,6 +15,8 @@ const roomRoutes = require('./routes/room');
 const voucherRoutes = require('./routes/voucher');
 const calendarRoutes = require('./routes/calendar');
 const customerRoutes = require('./routes/customer');
+const paypalRoutes = require('./routes/paypal');
+const vnpayRoutes = require('./routes/vnpay');
 
 // Cấu hình CORS
 const corsOptions = {
@@ -51,6 +54,8 @@ app.use('/api/room', roomRoutes);
 app.use('/api/voucher', voucherRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/customer', customerRoutes);
+app.use('/api/paypal', paypalRoutes);
+app.use('/api/vnpay', vnpayRoutes);
 
 // Khởi chạy server
 app.listen(port, () => {
