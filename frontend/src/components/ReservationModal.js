@@ -251,6 +251,15 @@ const ReservationModal = ({
 
   if (!isOpen) return null;
 
+  if (selectedBooking) {
+    return (
+      <BookingDetailsModal
+        booking={selectedBooking}
+        onClose={onBookingDetailsClosed}
+      />
+    );
+  }
+  
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
