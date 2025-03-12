@@ -54,7 +54,11 @@ router.post('/create-booking', async (req, res) => {
           currency_code: currency,
           value: total_price
         }
-      }]
+      }],
+      application_context: {
+        return_url: "http://localhost:3000/payment-success",
+        cancel_url: "http://localhost:3000/payment-cancel"
+      }
     });
 
     const order = await client.execute(request);
@@ -62,7 +66,15 @@ router.post('/create-booking', async (req, res) => {
       return res.status(500).json({ error: 'Không thể tạo đơn hàng PayPal!' });
     }
 
-    res.json({ order_id: order.result.id, booking_id });
+    // **Lấy `approve_url` để redirect người dùng thanh toán**
+    const approve_url = order.result.links.find(link => link.rel === "approve")?.href;
+
+    if (!approve_url) {
+      return res.status(500).json({ error: 'Không thể lấy URL thanh toán từ PayPal!' });
+    }
+
+    res.json({ order_id: order.result.id, booking_id, approve_url });
+
   } catch (error) {
     console.error("Lỗi khi tạo booking:", error);
     res.status(500).json({ error: 'Không thể tạo đơn đặt phòng!' });
@@ -71,41 +83,30 @@ router.post('/create-booking', async (req, res) => {
 
 
 router.post('/capture-order', async (req, res) => {
-  const { orderID, booking_id } = req.body;
+  console.log("Received data:", req.body);
 
-  if (!orderID || !booking_id) {
+  const { order_id, booking_id } = req.body;
+
+  if (!order_id || !booking_id) {
     return res.status(400).json({ error: 'Thiếu thông tin thanh toán!' });
   }
 
   try {
-    // Kiểm tra booking có tồn tại không
-    const [existingBooking] = await db.execute("SELECT * FROM bookings WHERE booking_id = ?", [booking_id]);
-    if (existingBooking.length === 0) {
-      return res.status(404).json({ error: 'Không tìm thấy đơn đặt phòng!' });
-    }
-    if (existingBooking[0].payment_status === 'paid') {
-      return res.status(400).json({ error: 'Đơn hàng này đã được thanh toán!' });
+    // Kiểm tra trạng thái đơn hàng
+    const checkOrder = new paypal.orders.OrdersGetRequest(order_id);
+    const orderDetails = await client.execute(checkOrder);
+
+    if (orderDetails.result.status !== 'APPROVED') {
+      return res.status(400).json({ error: 'Đơn hàng chưa được phê duyệt! Vui lòng thanh toán trước.' });
     }
 
-    // Xác nhận thanh toán qua PayPal
-    const request = new paypal.orders.OrdersCaptureRequest(orderID);
+    // Tiến hành xác nhận thanh toán
+    const request = new paypal.orders.OrdersCaptureRequest(order_id);
     request.requestBody({});
     const capture = await client.execute(request);
 
-    // Cập nhật trạng thái thanh toán trong DB
+    // Cập nhật DB
     await db.execute("UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ?", [booking_id]);
-
-    // Lấy thông tin khách hàng để gửi email
-    const [customer] = await db.execute("SELECT email FROM customers WHERE customer_id = ?", [existingBooking[0].customer_id]);
-    if (customer.length > 0 && customer[0].email) {
-      await sendBookingConfirmation(customer[0].email, {
-        booking_id: booking_id,
-        check_in_date: existingBooking[0].check_in_date,
-        check_out_date: existingBooking[0].check_out_date,
-        payment_status: 'paid',
-        payment_method: 'paypal',
-      });
-    }
 
     res.json({ message: 'Thanh toán thành công!', capture: capture.result });
   } catch (error) {
