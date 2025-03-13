@@ -1,27 +1,34 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header.js";
+import { BookingProvider } from "./components/BookingContext.js";
+import Rooms from "./components/Rooms.js";
 import Footer from "./components/Footer.js";
 import Login from "./components/Login.js";
 import Reports from "./components/Reports.js";
 import Service from "./components/Service.js";
-import Rooms from "./components/Rooms.js";
-import { BookingProvider } from "./components/BookingContext.js";
 import { CalendarProvider } from "./components/CalendarContext.js";
 
 function App() {
+  // State để quản lý trang hiện tại
+  const [currentPage, setCurrentPage] = useState("Calendar");
+  // State để quản lý trạng thái đăng nhập và thông tin người dùng
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Xử lý đăng nhập
+  // Hàm để thay đổi trang
+  const changePage = (pageName) => {
+    setCurrentPage(pageName);
+  };
+
+  // Hàm để xử lý đăng nhập
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Xử lý đăng xuất
+  // Hàm để xử lý đăng xuất
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUser(null);
@@ -37,61 +44,47 @@ function App() {
     }
   }, []);
 
+  // Render trang phù hợp dựa trên currentPage và vai trò của người dùng
+  const renderPage = () => {
+    switch (currentPage) {
+      case "Calendar":
+        return (
+          <BookingProvider>
+            <CalendarProvider>
+              <Rooms />
+            </CalendarProvider>
+          </BookingProvider>
+        );
+      case "Reports":
+        return <Reports />;
+      case "Service":
+        return <Service />;
+      default:
+        return (
+          <BookingProvider>
+            <CalendarProvider>
+              <Rooms />
+            </CalendarProvider>
+          </BookingProvider>
+        );
+    }
+  };
+
+  // Nếu chưa đăng nhập, hiển thị trang đăng nhập
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+
+  // Nếu đã đăng nhập, hiển thị header, footer và trang hiện tại dựa trên vai trò của người dùng
   return (
-    <Router>
-      <div className="App">
-        {isLoggedIn && <Header user={user} onLogout={handleLogout} />}
-        
-        <Routes>
-          {/* Nếu chưa đăng nhập, chuyển hướng đến trang login */}
-          {!isLoggedIn ? (
-            <Route path="*" element={<Login onLogin={handleLogin} />} />
-          ) : (
-            <>
-              {/* Route dành riêng cho từng role */}
-              {user.role === "receptionist" && (
-                <>
-                  <Route path="/calendar" element={
-                    <BookingProvider>
-                      <CalendarProvider>
-                        <Rooms />
-                      </CalendarProvider>
-                    </BookingProvider>
-                  } />
-                  <Route path="/service" element={<Service />} />
-                  <Route path="*" element={<Navigate to="/calendar" />} />
-                </>
-              )}
-
-              {user.role === "service_staff" && (
-                <>
-                  <Route path="/service" element={<Service />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="*" element={<Navigate to="/service" />} />
-                </>
-              )}
-
-              {user.role === "manager" && (
-                <>
-                  <Route path="/calendar" element={
-                    <BookingProvider>
-                      <CalendarProvider>
-                        <Rooms />
-                      </CalendarProvider>
-                    </BookingProvider>
-                  } />
-                  <Route path="/service" element={<Service />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="*" element={<Navigate to="/calendar" />} />
-                </>
-              )}
-            </>
-          )}
-        </Routes>
-
-        {isLoggedIn && <Footer />}
-      </div>
-    </Router>
+    <div className="App">
+      <Header onChangePage={changePage} currentPage={currentPage} user={user} onLogout={handleLogout} />
+      {user.role === "receptionist" && (currentPage === "Calendar" || currentPage === "Service") && renderPage()}
+      {user.role === "service_staff" && (currentPage === "Service" || currentPage === "Reports") && renderPage()}
+      {user.role === "manager" && renderPage()}
+      <Footer />
+    </div>
   );
 }
 
