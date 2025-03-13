@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"; // Dùng Link để điều hướng
 import Ad from "../assets/Ad.svg";
 import Grids from "../assets/Grids.svg";
 import ArrowDown from "../assets/ArrowDown.svg";
+import "../Style/Head.css";
 
 class Header extends React.Component {
   state = {
@@ -33,13 +34,6 @@ class Header extends React.Component {
             <span className="front-desk">Little Hotelier | Front desk</span>
           </div>
           <div className="Right-main-header">
-            <div className="apps-section">
-              <img className="app-icon" src={Grids} alt="icon" />
-              <span className="my-apps">My apps</span>
-            </div>
-            <div className="bb-section">
-              <span className="bb-text">Little Hotelier B&B</span>
-            </div>
             {user && (
               <div className="user-section">
                 <span className="user-name" onClick={this.toggleDropdown}>

@@ -66,9 +66,10 @@
   margin-bottom: 5px;
 }
 
-.apps-section:hover {
+.apps-section:hover,
+.user-section:hover {
   cursor: pointer;
-  opacity: .4;
+  color: aqua; /* Hover color */
 }
 
 .my-apps,
@@ -87,10 +88,6 @@
   margin-left: 18px;
   width: 30px;
   height: 30px;
-}
-.user-icon:hover {
-  cursor: pointer;
-  opacity: .4;
 }
 
 .Main-menu {
@@ -122,17 +119,23 @@
 }
 
 .user-name {
-  color: #fff;
-  font-size: 14px;
-  margin-right: 10px;
+  color: #fff; /* Text color */
+  font-size: 16px; /* Font size */
+  font-weight: 500; /* Font weight */
+  margin-right: 10px; /* Margin to the right */
   display: flex;
   align-items: center;
 }
 
+.user-name:hover {
+  color: aqua; /* Hover color */
+}
+
 .arrow-down {
-  width: 12px;
-  height: 12px;
+  width: 16px; /* Increase width */
+  height: 16px; /* Increase height */
   margin-left: 5px;
+  filter: invert(100%); /* Change color to white */
 }
 
 .dropdown-menu {
