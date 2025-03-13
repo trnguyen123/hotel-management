@@ -5,7 +5,13 @@ import '../Style/Management.css';
 const ServiceManagement = () => {
   const [services, setServices] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [currentService, setCurrentService] = useState({ id: '', name: '', description: '', price: '', duration: '' });
+  const [currentService, setCurrentService] = useState({ 
+    service_id: '', 
+    service_name: '', 
+    price: '', 
+    unit: '', // Không đặt giá trị mặc định
+    status: 'active' // Giữ giá trị mặc định cho status
+  });
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -15,38 +21,21 @@ const ServiceManagement = () => {
 
   const fetchServices = async () => {
     try {
-      // Kiểm tra xem có dữ liệu trong localStorage không
-      const savedServices = localStorage.getItem('services');
-      
-      if (savedServices) {
-        setServices(JSON.parse(savedServices));
-      } else {
-        // Nếu không có, sử dụng dữ liệu mẫu
-        const defaultServices = [
-          { id: 1, name: '@@@@@', description: 'Dịch vụ 1', price: '150000', duration: '30' },
-          { id: 2, name: '@@@@@', description: 'Dịch vụ 2', price: '200000', duration: '45' },
-          { id: 3, name: '@@@@@', description: 'Dịch vụ 3', price: '500000', duration: '120' },
-          { id: 4, name: '@@@@@', description: 'Dịch vụ 4', price: '700000', duration: '150' },
-        ];
-        setServices(defaultServices);
-        localStorage.setItem('services', JSON.stringify(defaultServices));
+      const response = await fetch('http://localhost:5000/api/service/getAll');
+      if (!response.ok) {
+        throw new Error('Failed to fetch services');
       }
+      const data = await response.json();
+      setServices(data);
     } catch (error) {
       console.error('Error fetching services:', error);
     }
   };
 
-  // Hàm thêm hoạt động mới vào timeline
   const addActivity = (content) => {
     const now = new Date();
     const timeString = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes() + ' ' + (now.getHours() >= 12 ? 'PM' : 'AM');
-    
-    const newActivity = {
-      time: timeString,
-      content: content
-    };
-    
-    // Lấy các hoạt động hiện tại từ localStorage
+    const newActivity = { time: timeString, content };
     let activities = [];
     try {
       const savedActivities = localStorage.getItem('recentActivities');
@@ -56,80 +45,116 @@ const ServiceManagement = () => {
     } catch (error) {
       console.error('Error loading activities:', error);
     }
-    
-    // Thêm hoạt động mới vào đầu danh sách
-    activities = [newActivity, ...activities.slice(0, 9)]; // Giữ tối đa 10 hoạt động
-    
-    // Lưu lại vào localStorage
+    activities = [newActivity, ...activities.slice(0, 9)];
     localStorage.setItem('recentActivities', JSON.stringify(activities));
-    
-    // Kích hoạt sự kiện để Dashboard biết có cập nhật
-    const event = new CustomEvent('activityAdded');
-    window.dispatchEvent(event);
+    window.dispatchEvent(new CustomEvent('activityAdded'));
   };
 
-  // Hàm thông báo cập nhật số lượng dịch vụ
   const notifyServiceUpdated = () => {
-    const event = new CustomEvent('serviceUpdated');
-    window.dispatchEvent(event);
+    window.dispatchEvent(new CustomEvent('serviceUpdated'));
   };
 
   const handleAddService = () => {
-    setCurrentService({ id: '', name: '', description: '', price: '', duration: '' });
+    setCurrentService({ 
+      service_id: '', 
+      service_name: '', 
+      price: '', 
+      unit: '', 
+      status: 'active' 
+    });
     setIsEdit(false);
     setShowModal(true);
   };
 
   const handleEditService = (service) => {
-    setCurrentService(service);
+    setCurrentService({
+      service_id: service.service_id,
+      service_name: service.service_name,
+      price: service.price,
+      unit: service.unit,
+      status: service.status
+    });
     setIsEdit(true);
     setShowModal(true);
   };
 
-  const handleDeleteService = async (id) => {
+  const handleDeleteService = async (service_id) => {
     try {
       if (window.confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')) {
-        const serviceToDelete = services.find(service => service.id === id);
-        const updatedServices = services.filter(service => service.id !== id);
-        setServices(updatedServices);
-        localStorage.setItem('services', JSON.stringify(updatedServices));
-        
-        // Thêm hoạt động xóa dịch vụ
-        addActivity(`Dịch vụ "${serviceToDelete.name}" đã bị xóa`);
-        notifyServiceUpdated();
+        const response = await fetch(`http://localhost:5000/api/service/delete/${service_id}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          const serviceToDelete = services.find(service => service.service_id === service_id);
+          addActivity(`Dịch vụ "${serviceToDelete.service_name}" đã bị xóa`);
+          notifyServiceUpdated();
+          fetchServices();
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to delete service:', errorData);
+          alert(`Xóa thất bại: ${errorData.message}`);
+        }
       }
     } catch (error) {
       console.error('Error deleting service:', error);
+      alert('Đã xảy ra lỗi khi xóa dịch vụ!');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let updatedServices;
       let activityMessage = '';
-      
+      const payload = {
+        service_name: currentService.service_name,
+        price: currentService.price,
+        unit: currentService.unit,
+        status: currentService.status
+      };
+
       if (isEdit) {
-        updatedServices = services.map(service => 
-          service.id === currentService.id ? currentService : service
-        );
-        activityMessage = `Dịch vụ "${currentService.name}" đã được cập nhật`;
+        console.log('Dữ liệu gửi đi (PUT):', payload);
+        const response = await fetch(`http://localhost:5000/api/service/update/${currentService.service_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+          activityMessage = `Dịch vụ "${currentService.service_name}" đã được cập nhật`;
+          addActivity(activityMessage);
+          notifyServiceUpdated();
+          setShowModal(false);
+          window.location.reload();
+        } else {
+          const errorData = await response.json();
+          console.error('Lỗi khi cập nhật dịch vụ:', errorData);
+          alert(`Cập nhật thất thất: ${errorData.message}`);
+          return;
+        }
       } else {
-        const newService = { ...currentService, id: Date.now() };
-        updatedServices = [...services, newService];
-        activityMessage = `Dịch vụ mới "${newService.name}" đã được thêm`;
+        console.log('Dữ liệu gửi đi (POST):', payload);
+        const response = await fetch('http://localhost:5000/api/service/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+          const newService = await response.json();
+          activityMessage = `Dịch vụ mới "${currentService.service_name}" đã được thêm`;
+          addActivity(activityMessage);
+          notifyServiceUpdated();
+          setShowModal(false);
+          window.location.reload();
+        } else {
+          const errorData = await response.json();
+          console.error('Lỗi khi thêm dịch vụ:', errorData);
+          alert(`Thêm dịch vụ thất bại: ${errorData.message}`);
+          return;
+        }
       }
-      
-      setServices(updatedServices);
-      localStorage.setItem('services', JSON.stringify(updatedServices));
-      
-      // Thêm hoạt động vào timeline
-      addActivity(activityMessage);
-      notifyServiceUpdated();
-      
-      setShowModal(false);
     } catch (error) {
-      console.error('Error saving service:', error);
+      console.error('Lỗi khi lưu dịch vụ:', error);
+      alert('Đã xảy ra lỗi khi lưu thông tin!');
     }
   };
 
@@ -139,8 +164,7 @@ const ServiceManagement = () => {
   };
 
   const filteredServices = services.filter(service => 
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (service.service_name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -172,25 +196,25 @@ const ServiceManagement = () => {
               <tr>
                 <th>ID</th>
                 <th>Tên dịch vụ</th>
-                <th>Mô tả</th>
                 <th>Giá (VND)</th>
-                <th>Thời gian (phút)</th>
+                <th>Đơn vị</th>
+                <th>Trạng thái</th>
                 <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
               {filteredServices.map(service => (
-                <tr key={service.id}>
-                  <td>{service.id}</td>
-                  <td>{service.name}</td>
-                  <td>{service.description}</td>
+                <tr key={service.service_id}>
+                  <td>{service.service_id}</td>
+                  <td>{service.service_name}</td>
                   <td>{parseInt(service.price).toLocaleString()}</td>
-                  <td>{service.duration}</td>
+                  <td>{service.unit}</td>
+                  <td>{service.status}</td>
                   <td className="actions">
                     <button className="btn btn-edit" onClick={() => handleEditService(service)}>
                       <FaEdit />
                     </button>
-                    <button className="btn btn-danger" onClick={() => handleDeleteService(service.id)}>
+                    <button className="btn btn-danger" onClick={() => handleDeleteService(service.service_id)}>
                       <FaTrash />
                     </button>
                   </td>
@@ -214,18 +238,8 @@ const ServiceManagement = () => {
                   <label>Tên dịch vụ</label>
                   <input 
                     type="text" 
-                    name="name" 
-                    value={currentService.name} 
-                    onChange={handleChange} 
-                    required 
-                    className="form-control"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Mô tả</label>
-                  <textarea 
-                    name="description" 
-                    value={currentService.description} 
+                    name="service_name" 
+                    value={currentService.service_name} 
                     onChange={handleChange} 
                     required 
                     className="form-control"
@@ -243,15 +257,29 @@ const ServiceManagement = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Thời gian (phút)</label>
+                  <label>Đơn vị</label>
                   <input 
-                    type="number" 
-                    name="duration" 
-                    value={currentService.duration} 
+                    type="text" 
+                    name="unit" 
+                    value={currentService.unit} 
                     onChange={handleChange} 
                     required 
                     className="form-control"
+                    placeholder="Nhập đơn vị (ví dụ: lần, suất, ngày, giờ)"
                   />
+                </div>
+                <div className="form-group">
+                  <label>Trạng thái</label>
+                  <select
+                    name="status"
+                    value={currentService.status}
+                    onChange={handleChange}
+                    required
+                    className="form-control"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn" onClick={() => setShowModal(false)}>Hủy</button>
@@ -264,6 +292,6 @@ const ServiceManagement = () => {
       )}
     </div>
   );
-}
+};
 
 export default ServiceManagement;

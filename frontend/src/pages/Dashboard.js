@@ -13,7 +13,7 @@ const Dashboard = () => {
       value: 4, 
       description: 'Tổng số nhân viên', 
       bgColor: 'rgba(67, 97, 238, 0.1)',
-      path: '/employees' // Đường dẫn đến trang nhân viên
+      path: '/admin/employees' // Đường dẫn đến trang nhân viên
     },
     { 
       icon: <FaConciergeBell style={{ color: '#f0932b' }} />, 
@@ -21,7 +21,7 @@ const Dashboard = () => {
       value: 0, 
       description: 'Dịch vụ đang cung cấp', 
       bgColor: 'rgba(240, 147, 43, 0.1)',
-      path: '/services' // Đường dẫn đến trang dịch vụ
+      path: '/admin/services' // Đường dẫn đến trang dịch vụ
     },
     { 
       icon: <FaTicketAlt style={{ color: '#eb4d4b' }} />, 
@@ -29,7 +29,7 @@ const Dashboard = () => {
       value: 0, 
       description: 'Voucher đang hoạt động', 
       bgColor: 'rgba(235, 77, 75, 0.1)',
-      path: '/vouchers' // Đường dẫn đến trang voucher
+      path: '/admin/vouchers' // Đường dẫn đến trang voucher
     },
     { 
       icon: <FaChartBar style={{ color: '#4cc9f0' }} />, 
@@ -37,7 +37,7 @@ const Dashboard = () => {
       value: '5.2M', 
       description: 'Doanh thu tháng này', 
       bgColor: 'rgba(76, 201, 240, 0.1)',
-      path: '/revenue' // Đường dẫn đến trang doanh thu
+      path: '/admin/revenue' // Đường dẫn đến trang doanh thu
     }
   ]);
   

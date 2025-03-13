@@ -6,111 +6,43 @@ const VoucherManagement = () => {
   const [vouchers, setVouchers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentVoucher, setCurrentVoucher] = useState({ 
-    id: '', 
-    code: '', 
-    discount: '', 
-    discountType: 'percent', 
-    minPurchase: '', 
-    startDate: '', 
-    endDate: '', 
-    status: 'active' 
+    voucher_code: '', 
+    discount_percentage: '', 
+    start_date: '', 
+    expiration_date: ''
   });
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Chỉ gọi một lần khi component mount
   useEffect(() => {
     fetchVouchers();
   }, []);
 
-  // Hàm lấy vouchers từ localStorage hoặc tạo dữ liệu mẫu nếu không có
-  const fetchVouchers = () => {
+  const fetchVouchers = async () => {
     try {
-      // Kiểm tra xem có vouchers trong localStorage chưa
-      const savedVouchers = localStorage.getItem('vouchers');
-      
-      if (savedVouchers && JSON.parse(savedVouchers).length > 0) {
-        // Đảm bảo dữ liệu không phải là null hoặc mảng rỗng
-        setVouchers(JSON.parse(savedVouchers));
-        console.log('Loaded vouchers from localStorage:', JSON.parse(savedVouchers));
-      } else {
-        // Sử dụng dữ liệu mẫu nếu không có
-        const sampleVouchers = [
-          { 
-            id: 1, 
-            code: 'WELCOME20', 
-            discount: '20', 
-            discountType: 'percent', 
-            minPurchase: '200000', 
-            startDate: '2023-01-01', 
-            endDate: '2023-12-31', 
-            status: 'active' 
-          },
-          { 
-            id: 2, 
-            code: 'SUMMER50', 
-            discount: '50000', 
-            discountType: 'fixed', 
-            minPurchase: '500000', 
-            startDate: '2023-06-01', 
-            endDate: '2023-08-31', 
-            status: 'active' 
-          },
-          { 
-            id: 3, 
-            code: 'BIRTHDAY25', 
-            discount: '25', 
-            discountType: 'percent', 
-            minPurchase: '300000', 
-            startDate: '2023-01-01', 
-            endDate: '2023-12-31', 
-            status: 'active' 
-          },
-          { 
-            id: 4, 
-            code: 'WINTER15', 
-            discount: '15', 
-            discountType: 'percent', 
-            minPurchase: '150000', 
-            startDate: '2022-12-01', 
-            endDate: '2023-02-28', 
-            status: 'expired' 
-          },
-        ];
-        // Lưu dữ liệu mẫu vào localStorage và state
-        localStorage.setItem('vouchers', JSON.stringify(sampleVouchers));
-        setVouchers(sampleVouchers);
-        console.log('Set sample vouchers to localStorage:', sampleVouchers);
+      const response = await fetch('http://localhost:5000/api/voucher/getAll');
+      if (!response.ok) {
+        throw new Error('Failed to fetch vouchers');
       }
+      const data = await response.json();
+      setVouchers(data);
     } catch (error) {
       console.error('Error fetching vouchers:', error);
-      // Trong trường hợp lỗi, set một mảng rỗng để tránh lỗi
       setVouchers([]);
     }
   };
 
-  // Hàm thêm hoạt động gần đây
   const addRecentActivity = (activity) => {
     try {
-      // Lấy các hoạt động gần đây từ localStorage
       const savedActivities = localStorage.getItem('recentActivities');
       let activities = savedActivities ? JSON.parse(savedActivities) : [];
-      
-      // Lấy thời gian hiện tại
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
-      
-      // Thêm hoạt động mới vào đầu danh sách
       activities = [{ time: formattedTime, content: activity }, ...activities.slice(0, 3)];
-      
-      // Lưu vào localStorage
       localStorage.setItem('recentActivities', JSON.stringify(activities));
-      
-      // Kích hoạt sự kiện để Dashboard cập nhật
-      const event = new Event('activityAdded');
-      window.dispatchEvent(event);
+      window.dispatchEvent(new Event('activityAdded'));
     } catch (error) {
       console.error('Error adding activity:', error);
     }
@@ -118,93 +50,99 @@ const VoucherManagement = () => {
 
   const handleAddVoucher = () => {
     setCurrentVoucher({ 
-      id: '', 
-      code: '', 
-      discount: '', 
-      discountType: 'percent', 
-      minPurchase: '', 
-      startDate: '', 
-      endDate: '', 
-      status: 'active' 
+      voucher_code: '', 
+      discount_percentage: '', 
+      start_date: '', 
+      expiration_date: '' 
     });
     setIsEdit(false);
     setShowModal(true);
   };
 
   const handleEditVoucher = (voucher) => {
-    setCurrentVoucher({...voucher});
+    setCurrentVoucher({
+      voucher_code: voucher.voucher_code,
+      discount_percentage: voucher.discount_percentage,
+      start_date: voucher.start_date.split('T')[0], // Chuẩn hóa định dạng YYYY-MM-DD
+      expiration_date: voucher.expiration_date.split('T')[0]
+    });
     setIsEdit(true);
     setShowModal(true);
   };
 
-  const handleDeleteVoucher = (id) => {
+  const handleDeleteVoucher = async (voucher_code) => {
     try {
       if (window.confirm('Bạn có chắc chắn muốn xóa voucher này?')) {
-        // Tìm thông tin voucher trước khi xóa
-        const deletedVoucher = vouchers.find(voucher => voucher.id === id);
-        
-        if (!deletedVoucher) {
-          console.error('Không tìm thấy voucher cần xóa với ID:', id);
-          return;
+        const response = await fetch(`http://localhost:5000/api/voucher/delete/${voucher_code}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          const deletedVoucher = vouchers.find(v => v.voucher_code === voucher_code);
+          addRecentActivity(`Đã xóa voucher ${deletedVoucher.voucher_code}`);
+          fetchVouchers(); // Cập nhật danh sách từ server
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to delete voucher:', errorData);
+          alert(`Xóa thất bại: ${errorData.message}`);
         }
-        
-        // Xóa voucher khỏi state
-        const updatedVouchers = vouchers.filter(voucher => voucher.id !== id);
-        setVouchers(updatedVouchers);
-        
-        // Cập nhật localStorage ngay lập tức 
-        localStorage.setItem('vouchers', JSON.stringify(updatedVouchers));
-        console.log('Đã xóa voucher với ID:', id);
-        console.log('Vouchers sau khi xóa:', updatedVouchers);
-        
-        // Thêm hoạt động
-        addRecentActivity(`Đã xóa voucher ${deletedVoucher.code}`);
       }
     } catch (error) {
       console.error('Error deleting voucher:', error);
+      alert('Đã xảy ra lỗi khi xóa voucher!');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let updatedVouchers;
-      
-      // Đảm bảo ID luôn là số
-      const voucherToSave = {
-        ...currentVoucher,
-        id: currentVoucher.id ? Number(currentVoucher.id) : Date.now()
+      const payload = {
+        voucher_code: currentVoucher.voucher_code,
+        discount_percentage: currentVoucher.discount_percentage,
+        start_date: currentVoucher.start_date,
+        expiration_date: currentVoucher.expiration_date
       };
-      
+      let activityMessage = '';
+
       if (isEdit) {
-        // Cập nhật voucher
-        updatedVouchers = vouchers.map(voucher => 
-          voucher.id === voucherToSave.id ? voucherToSave : voucher
-        );
-        console.log('Đã cập nhật voucher:', voucherToSave);
+        console.log('Dữ liệu gửi đi (PUT):', payload);
+        const response = await fetch(`http://localhost:5000/api/voucher/update/${currentVoucher.voucher_code}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+          activityMessage = `Đã cập nhật voucher ${currentVoucher.voucher_code}`;
+          addRecentActivity(activityMessage);
+          setShowModal(false);
+          window.location.reload(); // Refresh trang
+        } else {
+          const errorData = await response.json();
+          console.error('Lỗi khi cập nhật voucher:', errorData);
+          alert(`Cập nhật thất bại: ${errorData.message}`);
+          return;
+        }
       } else {
-        // Thêm voucher mới
-        updatedVouchers = [...vouchers, voucherToSave];
-        console.log('Đã thêm voucher mới:', voucherToSave);
+        console.log('Dữ liệu gửi đi (POST):', payload);
+        const response = await fetch('http://localhost:5000/api/voucher/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+          activityMessage = `Đã thêm voucher mới ${currentVoucher.voucher_code}`;
+          addRecentActivity(activityMessage);
+          setShowModal(false);
+          window.location.reload(); // Refresh trang
+        } else {
+          const errorData = await response.json();
+          console.error('Lỗi khi thêm voucher:', errorData);
+          alert(`Thêm voucher thất bại: ${errorData.message}`);
+          return;
+        }
       }
-      
-      // Cập nhật state
-      setVouchers(updatedVouchers);
-      
-      // Cập nhật localStorage ngay lập tức
-      localStorage.setItem('vouchers', JSON.stringify(updatedVouchers));
-      console.log('Đã lưu vouchers vào localStorage:', updatedVouchers);
-      
-      // Thêm hoạt động
-      addRecentActivity(isEdit 
-        ? `Đã cập nhật voucher ${voucherToSave.code}` 
-        : `Đã thêm voucher mới ${voucherToSave.code}`
-      );
-      
-      // Đóng modal
-      setShowModal(false);
     } catch (error) {
-      console.error('Error saving voucher:', error);
+      console.error('Lỗi khi lưu voucher:', error);
+      alert('Đã xảy ra lỗi khi lưu thông tin!');
     }
   };
 
@@ -214,8 +152,7 @@ const VoucherManagement = () => {
   };
 
   const filteredVouchers = vouchers.filter(voucher => 
-    voucher.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    voucher.status.toLowerCase().includes(searchTerm.toLowerCase())
+    (voucher.voucher_code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -245,40 +182,28 @@ const VoucherManagement = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th>
                 <th>Mã voucher</th>
-                <th>Giảm giá</th>
-                <th>Mua tối thiểu</th>
+                <th>Giảm giá (%)</th>
                 <th>Ngày bắt đầu</th>
                 <th>Ngày kết thúc</th>
-                <th>Trạng thái</th>
                 <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
               {filteredVouchers.length > 0 ? (
-                filteredVouchers.map(voucher => (
-                  <tr key={voucher.id}>
-                    <td>{voucher.id}</td>
-                    <td>{voucher.code}</td>
-                    <td>
-                      {voucher.discountType === 'percent' 
-                        ? `${voucher.discount}%` 
-                        : `${parseInt(voucher.discount).toLocaleString()} VND`}
-                    </td>
-                    <td>{parseInt(voucher.minPurchase).toLocaleString()} VND</td>
-                    <td>{new Date(voucher.startDate).toLocaleDateString('vi-VN')}</td>
-                    <td>{new Date(voucher.endDate).toLocaleDateString('vi-VN')}</td>
-                    <td>
-                      <span className={`status-badge ${voucher.status}`}>
-                        {voucher.status === 'active' ? 'Còn hạn' : 'Hết hạn'}
-                      </span>
-                    </td>
+                filteredVouchers.map((voucher, index) => (
+                  <tr key={voucher.voucher_code}>
+                    <td>{index + 1}</td> {/* STT tự tạo */}
+                    <td>{voucher.voucher_code}</td>
+                    <td>{voucher.discount_percentage}%</td>
+                    <td>{new Date(voucher.start_date).toLocaleDateString('vi-VN')}</td>
+                    <td>{new Date(voucher.expiration_date).toLocaleDateString('vi-VN')}</td>
                     <td className="actions">
                       <button className="btn btn-edit" onClick={() => handleEditVoucher(voucher)}>
                         <FaEdit />
                       </button>
-                      <button className="btn btn-danger" onClick={() => handleDeleteVoucher(voucher.id)}>
+                      <button className="btn btn-danger" onClick={() => handleDeleteVoucher(voucher.voucher_code)}>
                         <FaTrash />
                       </button>
                     </td>
@@ -286,7 +211,7 @@ const VoucherManagement = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center">Không có voucher nào</td>
+                  <td colSpan="6" className="text-center">Không có voucher nào</td>
                 </tr>
               )}
             </tbody>
@@ -307,84 +232,47 @@ const VoucherManagement = () => {
                   <label>Mã voucher</label>
                   <input 
                     type="text" 
-                    name="code" 
-                    value={currentVoucher.code} 
+                    name="voucher_code" 
+                    value={currentVoucher.voucher_code} 
                     onChange={handleChange} 
                     required 
                     className="form-control"
                   />
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Giảm giá</label>
-                    <input 
-                      type="number" 
-                      name="discount" 
-                      value={currentVoucher.discount} 
-                      onChange={handleChange} 
-                      required 
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Loại giảm giá</label>
-                    <select 
-                      name="discountType" 
-                      value={currentVoucher.discountType} 
-                      onChange={handleChange} 
-                      className="form-control"
-                    >
-                      <option value="percent">Phần trăm (%)</option>
-                      <option value="fixed">Số tiền cố định (VND)</option>
-                    </select>
-                  </div>
-                </div>
                 <div className="form-group">
-                  <label>Mua tối thiểu (VND)</label>
+                  <label>Giảm giá (%)</label>
                   <input 
                     type="number" 
-                    name="minPurchase" 
-                    value={currentVoucher.minPurchase} 
+                    name="discount_percentage" 
+                    value={currentVoucher.discount_percentage} 
+                    onChange={handleChange} 
+                    required 
+                    min="0" 
+                    max="100"
+                    className="form-control"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Ngày bắt đầu</label>
+                  <input 
+                    type="date" 
+                    name="start_date" 
+                    value={currentVoucher.start_date} 
                     onChange={handleChange} 
                     required 
                     className="form-control"
                   />
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Ngày bắt đầu</label>
-                    <input 
-                      type="date" 
-                      name="startDate" 
-                      value={currentVoucher.startDate} 
-                      onChange={handleChange} 
-                      required 
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Ngày kết thúc</label>
-                    <input 
-                      type="date" 
-                      name="endDate" 
-                      value={currentVoucher.endDate} 
-                      onChange={handleChange} 
-                      required 
-                      className="form-control"
-                    />
-                  </div>
-                </div>
                 <div className="form-group">
-                  <label>Trạng thái</label>
-                  <select 
-                    name="status" 
-                    value={currentVoucher.status} 
+                  <label>Ngày kết thúc</label>
+                  <input 
+                    type="date" 
+                    name="expiration_date" 
+                    value={currentVoucher.expiration_date} 
                     onChange={handleChange} 
+                    required 
                     className="form-control"
-                  >
-                    <option value="active">Còn hạn</option>
-                    <option value="expired">Hết hạn</option>
-                  </select>
+                  />
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn" onClick={() => setShowModal(false)}>Hủy</button>
@@ -397,6 +285,6 @@ const VoucherManagement = () => {
       )}
     </div>
   );
-}
+};
 
 export default VoucherManagement;

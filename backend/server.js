@@ -15,6 +15,7 @@ const roomRoutes = require('./routes/room');
 const voucherRoutes = require('./routes/voucher');
 const calendarRoutes = require('./routes/calendar');
 const customerRoutes = require('./routes/customer');
+const employeeRoutes = require('./routes/employee');
 const paypalRoutes = require('./routes/paypal');
 const vnpayRoutes = require('./routes/vnpay');
 
@@ -54,6 +55,7 @@ app.use('/api/room', roomRoutes);
 app.use('/api/voucher', voucherRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/customer', customerRoutes);
+app.use('/api/employee', employeeRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/vnpay', vnpayRoutes);
 

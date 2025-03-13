@@ -15,18 +15,18 @@ router.get('/getAll', async (req, res) => {
 
 // API thêm voucher mới
 router.post('/create', async (req, res) => {
-    const { voucher_code, discount_percentage, expiration_date } = req.body;
+    const { voucher_code, discount_percentage, start_date, expiration_date } = req.body;
 
-    if (!voucher_code || !discount_percentage || !expiration_date) {
+    if (!voucher_code || !discount_percentage || !start_date || !expiration_date) {
         return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
     }
 
     try {
         const [result] = await db.execute(
-            'INSERT INTO vouchers (voucher_code, discount_percentage, expiration_date) VALUES (?, ?, ?)',
-            [voucher_code, discount_percentage, expiration_date]
+            'INSERT INTO vouchers (voucher_code, discount_percentage, start_date, expiration_date) VALUES (?, ?, ?, ?)',
+            [voucher_code, discount_percentage, start_date, expiration_date]
         );
-        res.status(201).json({ message: 'Voucher đã được thêm!', voucher_id: result.insertId });
+        res.status(201).json({ message: 'Voucher đã được thêm!', voucher_code });
     } catch (error) {
         console.error('Lỗi khi thêm voucher:', error);
         res.status(500).json({ message: 'Lỗi server' });
@@ -34,18 +34,18 @@ router.post('/create', async (req, res) => {
 });
 
 // API sửa thông tin voucher
-router.put('/update/:voucher_id', async (req, res) => {
-    const { voucher_id } = req.params;
-    const { voucher_code, discount_percentage, expiration_date } = req.body;
+router.put('/update/:voucher_code', async (req, res) => {
+    const { voucher_code } = req.params;
+    const { discount_percentage, start_date, expiration_date } = req.body;
 
-    if (!voucher_code || !discount_percentage || !expiration_date) {
+    if (!discount_percentage || !start_date || !expiration_date) {
         return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
     }
 
     try {
         const [result] = await db.execute(
-            'UPDATE vouchers SET voucher_code = ?, discount_percentage = ?, expiration_date = ? WHERE voucher_id = ?',
-            [voucher_code, discount_percentage, expiration_date, voucher_id]
+            'UPDATE vouchers SET discount_percentage = ?, start_date = ?, expiration_date = ? WHERE voucher_code = ?',
+            [discount_percentage, start_date, expiration_date, voucher_code]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Voucher không tồn tại!' });
@@ -58,11 +58,11 @@ router.put('/update/:voucher_id', async (req, res) => {
 });
 
 // API xóa voucher
-router.delete('/delete/:voucher_id', async (req, res) => {
-    const { voucher_id } = req.params;
+router.delete('/delete/:voucher_code', async (req, res) => {
+    const { voucher_code } = req.params;
 
     try {
-        const [result] = await db.execute('DELETE FROM vouchers WHERE voucher_id = ?', [voucher_id]);
+        const [result] = await db.execute('DELETE FROM vouchers WHERE voucher_code = ?', [voucher_code]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Voucher không tồn tại!' });
         }
