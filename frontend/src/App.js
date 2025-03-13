@@ -1,34 +1,28 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header.js";
+import { BookingProvider } from "./components/BookingContext.js";
+import Rooms from "./components/Rooms.js";
 import Footer from "./components/Footer.js";
 import Login from "./components/Login.js";
 import Reports from "./components/Reports.js";
 import Service from "./components/Service.js";
-import Rooms from "./components/Rooms.js";
-import { BookingProvider } from "./components/BookingContext.js";
 import { CalendarProvider } from "./components/CalendarContext.js";
+import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
+import EmployeeManagement from "./pages/EmployeeManagement";
+import ServiceManagement from "./pages/ServiceManagement";
+import VoucherManagement from "./pages/VoucherManagement";
+import RoomReportsPage from "./pages/RoomReportsPage";
+import RevenueManagement from "./pages/RevenueManagement";
 
 function App() {
+  const [currentPage, setCurrentPage] = useState("Calendar");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Xử lý đăng nhập
-  const handleLogin = (userData) => {
-    setIsLoggedIn(true);
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-  };
-
-  // Xử lý đăng xuất
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
-    localStorage.removeItem("user");
-  };
-
-  // Kiểm tra `localStorage` khi ứng dụng khởi động
+  // Kiểm tra localStorage khi app khởi động
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -37,19 +31,38 @@ function App() {
     }
   }, []);
 
+  // Hàm để thay đổi trang
+  const changePage = (pageName) => {
+    setCurrentPage(pageName);
+  };
+
+  // Hàm xử lý đăng nhập
+  const handleLogin = (userData) => {
+    setIsLoggedIn(true);
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    localStorage.removeItem("user");
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <Router>
       <div className="App">
-        {isLoggedIn && <Header user={user} onLogout={handleLogout} />}
-        
-        <Routes>
-          {/* Nếu chưa đăng nhập, chuyển hướng đến trang login */}
-          {!isLoggedIn ? (
-            <Route path="*" element={<Login onLogin={handleLogin} />} />
-          ) : (
-            <>
-              {/* Route dành riêng cho từng role */}
-              {user.role === "receptionist" && (
+        <Header onChangePage={changePage} currentPage={currentPage} user={user} onLogout={handleLogout} />
+        <div className="app">
+          {user && user.role === "manager" && <Sidebar />}
+          <div className="content">
+            <Routes>
+              {user && user.role === "receptionist" && (
                 <>
                   <Route path="/calendar" element={
                     <BookingProvider>
@@ -59,19 +72,15 @@ function App() {
                     </BookingProvider>
                   } />
                   <Route path="/service" element={<Service />} />
-                  <Route path="*" element={<Navigate to="/calendar" />} />
                 </>
               )}
-
-              {user.role === "service_staff" && (
+              {user && user.role === "service_staff" && (
                 <>
                   <Route path="/service" element={<Service />} />
                   <Route path="/reports" element={<Reports />} />
-                  <Route path="*" element={<Navigate to="/service" />} />
                 </>
               )}
-
-              {user.role === "manager" && (
+              {user && user.role === "manager" && (
                 <>
                   <Route path="/calendar" element={
                     <BookingProvider>
@@ -80,16 +89,30 @@ function App() {
                       </CalendarProvider>
                     </BookingProvider>
                   } />
-                  <Route path="/service" element={<Service />} />
                   <Route path="/reports" element={<Reports />} />
-                  <Route path="*" element={<Navigate to="/calendar" />} />
+                  <Route path="/service" element={<Service />} />
+                  <Route path="/admin" element={<Dashboard />} />
+                  <Route path="/admin/employees" element={<EmployeeManagement />} />
+                  <Route path="/admin/services" element={<ServiceManagement />} />
+                  <Route path="/admin/vouchers" element={<VoucherManagement />} />
+                  <Route path="/admin/room-reports" element={<RoomReportsPage />} />
+                  <Route path="/admin/revenue" element={<RevenueManagement />} />
                 </>
               )}
-            </>
-          )}
-        </Routes>
-
-        {isLoggedIn && <Footer />}
+              {/* Các route công khai */}
+              <Route path="/calendar" element={
+                <BookingProvider>
+                  <CalendarProvider>
+                    <Rooms />
+                  </CalendarProvider>
+                </BookingProvider>
+              } />
+              <Route path="/service" element={<Service />} />
+              <Route path="/reports" element={<Reports />} />
+            </Routes>
+          </div>
+        </div>
+        <Footer />
       </div>
     </Router>
   );

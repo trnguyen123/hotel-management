@@ -1,25 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom"; // Dùng Link để điều hướng
 import Ad from "../assets/Ad.svg";
-import Head from "../Style/Head.css";
 import Grids from "../assets/Grids.svg";
-import Users from "../assets/Users.svg";
-import ArrowDown from "../assets/ArrowDown.svg"; // Thêm icon mũi tên
+import ArrowDown from "../assets/ArrowDown.svg";
 
 class Header extends React.Component {
   state = {
     dropdownOpen: false,
-  };
-
-  handlePageChange = (pageName) => {
-    if (this.props.onChangePage) {
-      this.props.onChangePage(pageName);
-    }
-  };
-
-  navigateToLogin = () => {
-    if (this.props.onChangePage) {
-      this.props.onChangePage('Login');
-    }
   };
 
   handleLogout = () => {
@@ -40,28 +27,28 @@ class Header extends React.Component {
 
     return (
       <>
-        <div className='Main-header'>
-          <div className='Left-main-header'>
-            <img className='header-img' src={Ad} alt='logo' />
-            <span className='front-desk'>Little Hotelier | Front desk</span>
+        <div className="Main-header">
+          <div className="Left-main-header">
+            <img className="header-img" src={Ad} alt="logo" />
+            <span className="front-desk">Little Hotelier | Front desk</span>
           </div>
-          <div className='Right-main-header'>
-            <div className='apps-section'>
-              <img className='app-icon' src={Grids} alt='icon' />
-              <span className='my-apps'>My apps</span>
+          <div className="Right-main-header">
+            <div className="apps-section">
+              <img className="app-icon" src={Grids} alt="icon" />
+              <span className="my-apps">My apps</span>
             </div>
-            <div className='bb-section'>
-              <span className='bb-text'>Little Hotelier B&B</span>
+            <div className="bb-section">
+              <span className="bb-text">Little Hotelier B&B</span>
             </div>
             {user && (
-              <div className='user-section'>
-                <span className='user-name' onClick={this.toggleDropdown}>
+              <div className="user-section">
+                <span className="user-name" onClick={this.toggleDropdown}>
                   {user.full_name}
-                  <img className='arrow-down' src={ArrowDown} alt='arrow down' />
+                  <img className="arrow-down" src={ArrowDown} alt="arrow down" />
                 </span>
                 {dropdownOpen && (
-                  <div className='dropdown-menu'>
-                    <button className='logout-button' onClick={this.handleLogout}>
+                  <div className="dropdown-menu">
+                    <button className="logout-button" onClick={this.handleLogout}>
                       Đăng xuất
                     </button>
                   </div>
@@ -70,22 +57,22 @@ class Header extends React.Component {
             )}
           </div>
         </div>
-        <div className='Main-menu'>
-          <ul className='list-section'>
-            <li className={`mgr-18 ${this.props.currentPage === 'Calendar' ? 'active' : ''}`}>
-              <a href="#" onClick={(e) => { e.preventDefault(); this.handlePageChange('Calendar'); }}>
+        <div className="Main-menu">
+          <ul className="list-section">
+            <li className="mgr-18">
+              <Link to="/calendar" className={this.props.currentPage === "Calendar" ? "active" : ""}>
                 Calendar
-              </a>
+              </Link>
             </li>
-            <li className={`mgr-18 ${this.props.currentPage === 'Reports' ? 'active' : ''}`}>
-              <a href="#" onClick={(e) => { e.preventDefault(); this.handlePageChange('Reports'); }}>
+            <li className="mgr-18">
+              <Link to="/reports" className={this.props.currentPage === "Reports" ? "active" : ""}>
                 Reports
-              </a>
+              </Link>
             </li>
-            <li className={`mgr-18 ${this.props.currentPage === 'Service' ? 'active' : ''}`}>
-              <a href="#" onClick={(e) => { e.preventDefault(); this.handlePageChange('Service'); }}>
+            <li className="mgr-18">
+              <Link to="/service" className={this.props.currentPage === "Service" ? "active" : ""}>
                 Service
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
