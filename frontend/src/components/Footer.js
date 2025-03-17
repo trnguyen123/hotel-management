@@ -5,38 +5,21 @@ const Footer = () => {
   const menuItems = [
     {
       title: "Reservations",
-      submenu: [
-        { title: "Overview", link: "#" },
-        { title: "Calendar", link: "#" },
-      ],
     },
     {
       title: "Inventory",
-      submenu: [
-        { title: "Rates and availability", link: "#" },
-        { title: "Inclusions", link: "#" },
-      ],
     },
     {
       title: "Setup",
-      submenu: [
-        { title: "Property", link: "#" },
-        { title: "Room types", link: "#" },
-        { title: "Extras", link: "#" },
-        { title: "Promotions", link: "#" },
-      ],
     },
     {
       title: "Reports",
-      submenu: [{ title: "Summary", link: "#" }],
     },
     {
       title: "Documentation",
-      submenu: [{ title: "Terms and conditions", link: "#" }],
     },
     {
       title: "Contact us",
-      submenu: [{ title: "Support", link: "#" }],
     },
     {
       title: "Choose language",

@@ -1,37 +1,72 @@
-import React, { useState } from 'react';
-import { FaDownload, FaChartBar, FaUsers, FaTicketAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaChartBar, FaUsers, FaTicketAlt, FaBook } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom'; // Thêm useNavigate
 import '../Style/Management.css';
 
-const ReportManagement = () => {
-  const [reportType, setReportType] = useState('revenue');
+const RevenueManagement = () => {
+  const navigate = useNavigate(); // Thêm hook để điều hướng
+  const [reportType, setReportType] = useState('bookings');
   const [period, setPeriod] = useState('month');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 7)); // Default to current month (YYYY-MM)
+  const [date, setDate] = useState('2025-03');
+  const [bookingData, setBookingData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data for demonstration
-  const revenueData = [
-    { date: '2023-01-01', income: 12500000, expenses: 5200000, profit: 7300000 },
-    { date: '2023-01-02', income: 8700000, expenses: 3400000, profit: 5300000 },
-    { date: '2023-01-03', income: 10200000, expenses: 4800000, profit: 5400000 },
-    { date: '2023-01-04', income: 9500000, expenses: 4100000, profit: 5400000 },
-    { date: '2023-01-05', income: 14200000, expenses: 6300000, profit: 7900000 },
-  ];
+  const EXCHANGE_RATE = 25000;
 
-  const employeeData = [
-    { id: 1, name: 'Nguyễn Văn A', customers: 45, revenue: 15200000, commission: 1520000 },
-    { id: 2, name: 'Trần Thị B', customers: 38, revenue: 12800000, commission: 1280000 },
-    { id: 3, name: 'Lê Văn C', customers: 42, revenue: 14500000, commission: 1450000 },
-    { id: 4, name: 'Phạm Thị D', customers: 36, revenue: 11900000, commission: 1190000 },
-  ];
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/booking/getAll');
+        const data = await response.json();
+        setBookingData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu bookings:', error);
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
 
-  const serviceData = [
-    { id: 1, name: '@@@@@@', count: 125, revenue: 18750000 },
-    { id: 2, name: '@@@@@@', count: 98, revenue: 19600000 },
-    { id: 3, name: '@@@@@@', count: 65, revenue: 32500000 },
-    { id: 4, name: '@@@@@@', count: 42, revenue: 29400000 },
-  ];
+  const filterDataByPeriod = (data) => {
+    const selectedDate = new Date(date + '-01');
+    return data.filter((item) => {
+      const checkInDate = new Date(item.check_in_date);
+      if (period === 'day') {
+        return checkInDate.toISOString().slice(0, 10) === date;
+      } else if (period === 'month') {
+        return (
+          checkInDate.getMonth() === selectedDate.getMonth() &&
+          checkInDate.getFullYear() === selectedDate.getFullYear()
+        );
+      } else if (period === 'quarter') {
+        const quarter = Math.ceil((selectedDate.getMonth() + 1) / 3);
+        const itemQuarter = Math.ceil((checkInDate.getMonth() + 1) / 3);
+        return itemQuarter === quarter && checkInDate.getFullYear() === selectedDate.getFullYear();
+      } else if (period === 'year') {
+        return checkInDate.getFullYear() === selectedDate.getFullYear();
+      }
+      return true;
+    });
+  };
 
-  const handleDownload = () => {
-    alert('Tính năng tải xuống báo cáo đang được phát triển.');
+  const convertToVND = (amount, paymentMethod) => {
+    const isVnd = ['vnpay', 'cash'].includes(paymentMethod.toLowerCase());
+    const value = Number(amount) || 0;
+    return isVnd ? value : value * EXCHANGE_RATE;
+  };
+
+  const filteredBookings = filterDataByPeriod(bookingData);
+
+  // Tính tổng doanh thu
+  const totalRevenue = filteredBookings.reduce((sum, b) => 
+    sum + convertToVND(b.total_price, b.payment_method), 0
+  );
+
+  // Hàm điều hướng về Dashboard và truyền tổng doanh thu
+  const goToDashboard = () => {
+    navigate('/admin/dashboard', { state: { monthlyRevenue: totalRevenue } });
   };
 
   return (
@@ -39,51 +74,12 @@ const ReportManagement = () => {
       <div className="page-header">
         <h1>Quản lý báo cáo</h1>
       </div>
-
-      <div className="report-filters card">
-        <div className="filter-group">
-          <label>Loại báo cáo:</label>
-          <select 
-            value={reportType} 
-            onChange={(e) => setReportType(e.target.value)}
-            className="form-control"
-          >
-            <option value="revenue">Báo cáo doanh thu</option>
-            <option value="employee">Báo cáo nhân viên</option>
-            <option value="service">Báo cáo dịch vụ</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>Khoảng thời gian:</label>
-          <select 
-            value={period} 
-            onChange={(e) => setPeriod(e.target.value)}
-            className="form-control"
-          >
-            <option value="day">Ngày</option>
-            <option value="month">Tháng</option>
-            <option value="quarter">Quý</option>
-            <option value="year">Năm</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>{period === 'day' ? 'Ngày:' : period === 'month' ? 'Tháng:' : period === 'quarter' ? 'Quý:' : 'Năm:'}</label>
-          <input 
-            type={period === 'day' ? 'date' : 'month'} 
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="form-control"
-          />
-        </div>
-        <button className="btn btn-primary" onClick={handleDownload}>
-          <FaDownload /> Tải xuống
-        </button>
-      </div>
-
       <div className="card">
         <div className="report-header">
           <h2>
-            {reportType === 'revenue' ? (
+            {reportType === 'bookings' ? (
+              <><FaBook className="report-icon" /> Báo cáo đặt phòng</>
+            ) : reportType === 'revenue' ? (
               <><FaChartBar className="report-icon" /> Báo cáo doanh thu</>
             ) : reportType === 'employee' ? (
               <><FaUsers className="report-icon" /> Báo cáo nhân viên</>
@@ -91,106 +87,79 @@ const ReportManagement = () => {
               <><FaTicketAlt className="report-icon" /> Báo cáo dịch vụ</>
             )}
           </h2>
-          <p className="report-period">
-            {period === 'day' && `Ngày ${new Date(date).toLocaleDateString('vi-VN')}`}
-            {period === 'month' && `Tháng ${new Date(date + '-01').toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}`}
-            {period === 'quarter' && `Quý ${Math.ceil(new Date(date + '-01').getMonth() / 3)} năm ${new Date(date + '-01').getFullYear()}`}
-            {period === 'year' && `Năm ${new Date(date + '-01').getFullYear()}`}
-          </p>
         </div>
 
         <div className="table-responsive">
-          {reportType === 'revenue' && (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Ngày</th>
-                  <th>Doanh thu</th>
-                  <th>Chi phí</th>
-                  <th>Lợi nhuận</th>
-                </tr>
-              </thead>
-              <tbody>
-                {revenueData.map((item, index) => (
-                  <tr key={index}>
-                    <td>{new Date(item.date).toLocaleDateString('vi-VN')}</td>
-                    <td className="text-right">{item.income.toLocaleString()} VND</td>
-                    <td className="text-right">{item.expenses.toLocaleString()} VND</td>
-                    <td className="text-right">{item.profit.toLocaleString()} VND</td>
+          {reportType === 'bookings' && (
+            loading ? (
+              <p>Đang tải dữ liệu...</p>
+            ) : (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tên khách hàng</th>
+                    <th>Số phòng</th>
+                    <th>Ngày đặt</th>
+                    <th>Ngày nhận</th>
+                    <th>Ngày trả</th>
+                    <th>Trạng thái</th>
+                    <th>Tổng giá</th>
+                    <th>Thanh toán</th>
+                    <th>Phí hủy</th>
                   </tr>
-                ))}
-                <tr className="summary-row">
-                  <td><strong>Tổng</strong></td>
-                  <td className="text-right"><strong>{revenueData.reduce((sum, item) => sum + item.income, 0).toLocaleString()} VND</strong></td>
-                  <td className="text-right"><strong>{revenueData.reduce((sum, item) => sum + item.expenses, 0).toLocaleString()} VND</strong></td>
-                  <td className="text-right"><strong>{revenueData.reduce((sum, item) => sum + item.profit, 0).toLocaleString()} VND</strong></td>
-                </tr>
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {filteredBookings.map((booking) => {
+                    const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
+                    const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
+                    const cancellationFee = Number(booking.cancellation_fee);
 
-          {reportType === 'employee' && (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tên nhân viên</th>
-                  <th>Số khách hàng</th>
-                  <th>Doanh thu</th>
-                  <th>Hoa hồng</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employeeData.map((employee) => (
-                  <tr key={employee.id}>
-                    <td>{employee.id}</td>
-                    <td>{employee.name}</td>
-                    <td className="text-right">{employee.customers}</td>
-                    <td className="text-right">{employee.revenue.toLocaleString()} VND</td>
-                    <td className="text-right">{employee.commission.toLocaleString()} VND</td>
+                    return (
+                      <tr key={booking.booking_id}>
+                        <td>{booking.booking_id}</td>
+                        <td>{booking.full_name}</td>
+                        <td>{booking.room_number}</td>
+                        <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+                        <td>{new Date(booking.check_in_date).toLocaleDateString('vi-VN')}</td>
+                        <td>{new Date(booking.check_out_date).toLocaleDateString('vi-VN')}</td>
+                        <td>{booking.status}</td>
+                        <td className="text-right">
+                          {isVnd
+                            ? `${totalPrice.toLocaleString()} VND`
+                            : `${totalPrice.toLocaleString()} USD`}
+                        </td>
+                        <td>{booking.payment_status}</td>
+                        <td className="text-right">
+                          {isVnd
+                            ? `${cancellationFee.toLocaleString()} VND`
+                            : `${cancellationFee.toLocaleString()} USD`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="summary-row">
+                    <td colSpan="7"><strong>Tổng</strong></td>
+                    <td className="text-right">
+                      <strong>{totalRevenue.toLocaleString()} VND</strong>
+                    </td>
+                    <td></td>
+                    <td className="text-right">
+                      <strong>
+                        {filteredBookings
+                          .reduce((sum, b) => sum + convertToVND(b.cancellation_fee, b.payment_method), 0)
+                          .toLocaleString()} VND
+                      </strong>
+                    </td>
                   </tr>
-                ))}
-                <tr className="summary-row">
-                  <td colSpan="2"><strong>Tổng</strong></td>
-                  <td className="text-right"><strong>{employeeData.reduce((sum, emp) => sum + emp.customers, 0)}</strong></td>
-                  <td className="text-right"><strong>{employeeData.reduce((sum, emp) => sum + emp.revenue, 0).toLocaleString()} VND</strong></td>
-                  <td className="text-right"><strong>{employeeData.reduce((sum, emp) => sum + emp.commission, 0).toLocaleString()} VND</strong></td>
-                </tr>
-              </tbody>
-            </table>
-          )}
-
-          {reportType === 'service' && (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Tên dịch vụ</th>
-                  <th>Số lượng</th>
-                  <th>Doanh thu</th>
-                </tr>
-              </thead>
-              <tbody>
-                {serviceData.map((service) => (
-                  <tr key={service.id}>
-                    <td>{service.id}</td>
-                    <td>{service.name}</td>
-                    <td className="text-right">{service.count}</td>
-                    <td className="text-right">{service.revenue.toLocaleString()} VND</td>
-                  </tr>
-                ))}
-                <tr className="summary-row">
-                  <td colSpan="2"><strong>Tổng</strong></td>
-                  <td className="text-right"><strong>{serviceData.reduce((sum, service) => sum + service.count, 0)}</strong></td>
-                  <td className="text-right"><strong>{serviceData.reduce((sum, service) => sum + service.revenue, 0).toLocaleString()} VND</strong></td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            )
           )}
         </div>
       </div>
     </div>
   );
-}
+};
 
-export default ReportManagement;
+export default RevenueManagement;

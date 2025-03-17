@@ -84,4 +84,15 @@ router.delete("/delete/:service_id", async (req, res) => {
     }
 });
 
+// API lấy số lượng dịch vụ
+router.get('/count', async (req, res) => {
+    try {
+      const [rows] = await db.execute('SELECT COUNT(*) as count FROM services WHERE status = ?', ['active']);
+      res.json({ count: rows[0].count });
+    } catch (error) {
+      console.error('Lỗi khi lấy số lượng dịch vụ:', error);
+      res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
 module.exports = router;

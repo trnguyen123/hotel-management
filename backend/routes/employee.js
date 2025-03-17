@@ -14,6 +14,17 @@ router.get('/getAll', async (req, res) => {
     }
 });
 
+// API lấy số lượng nhân viên
+router.get('/count', async (req, res) => {
+    try {
+      const [rows] = await db.execute('SELECT COUNT(*) as count FROM employees');
+      res.json({ count: rows[0].count });
+    } catch (error) {
+      console.error('Lỗi khi lấy số lượng nhân viên:', error);
+      res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
 // API thêm nhân viên mới
 router.post('/create', async (req, res) => {
     const { full_name, email, password, role, phone_number } = req.body;
