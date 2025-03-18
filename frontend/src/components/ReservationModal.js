@@ -301,8 +301,9 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
   const handlePayPalSuccess = async (details, data) => {
     const orderID = data.orderID;
     const booking_id = localStorage.getItem("booking_id"); // Lấy booking_id từ localStorage
+    console.log("Capture details:", details); // Log chi tiết capture để kiểm tra
     try {
-      const response = await fetch("http://localhost:5000/api/booking/capture-order", {
+      const response = await fetch("http://localhost:5000/api/paypal/capture-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order_id: orderID, booking_id }),
@@ -474,7 +475,6 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                   <PayPalButtons
                     style={{ layout: "vertical" }}
                     createOrder={(data, actions) => {
-                      // Tạo đơn hàng qua API thay vì trực tiếp
                       return fetch("http://localhost:5000/api/paypal/create-booking", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -496,8 +496,8 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                       })
                         .then(response => response.json())
                         .then(data => {
-                          localStorage.setItem("booking_id", data.booking_id); // Lưu booking_id
-                          return data.order_id; // Trả về order_id từ API
+                          localStorage.setItem("booking_id", data.booking_id);
+                          return data.order_id;
                         })
                         .catch(error => {
                           console.error("Error creating order:", error);
@@ -505,7 +505,9 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                         });
                     }}
                     onApprove={(data, actions) => {
-                      return actions.order.capture().then(handlePayPalSuccess);
+                      return actions.order.capture().then((details) => {
+                        return handlePayPalSuccess(details, data); // Truyền cả details và data
+                      });
                     }}
                   />
                 </PayPalScriptProvider>

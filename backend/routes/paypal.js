@@ -100,38 +100,27 @@ router.post('/capture-order', async (req, res) => {
   }
 
   try {
-    // Kiểm tra trạng thái đơn hàng
-    const checkOrder = new paypal.orders.OrdersGetRequest(order_id);
-    const orderDetails = await client.execute(checkOrder);
-
-    if (orderDetails.result.status !== 'APPROVED') {
-      return res.status(400).json({ error: 'Đơn hàng chưa được phê duyệt! Vui lòng thanh toán trước.' });
-    }
-
-    // Tiến hành xác nhận thanh toán
-    const request = new paypal.orders.OrdersCaptureRequest(order_id);
-    request.requestBody({});
-    const capture = await client.execute(request);
-
-    // Cập nhật payment_status thành 'paid'
+    
     await db.execute("UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ?", [booking_id]);
 
     // Gửi email xác nhận (nếu cần)
-    const [booking] = await db.execute("SELECT email FROM customers WHERE customer_id = (SELECT customer_id FROM bookings WHERE booking_id = ?)", [booking_id]);
+    const [booking] = await db.execute(
+      "SELECT email FROM customers WHERE customer_id = (SELECT customer_id FROM bookings WHERE booking_id = ?)",
+      [booking_id]
+    );
     if (booking[0].email) {
       await sendBookingConfirmation(booking[0].email, {
         booking_id,
-        check_in_date: orderDetails.result.purchase_units[0]?.reference_id?.check_in_date, // Tùy chỉnh nếu cần
-        check_out_date: orderDetails.result.purchase_units[0]?.reference_id?.check_out_date,
         payment_status: 'paid',
         payment_method: 'paypal',
       });
     }
 
-    res.json({ message: 'Thanh toán thành công!', capture: capture.result });
+    res.json({ message: 'Thanh toán thành công!' });
   } catch (error) {
     console.error("Lỗi khi xử lý thanh toán PayPal:", error);
     res.status(500).json({ error: 'Không thể xử lý thanh toán PayPal!' });
   }
 });
+
 module.exports = router;

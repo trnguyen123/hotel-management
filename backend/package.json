@@ -14,6 +14,7 @@
     "confit": "^3.0.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "math-intrinsics": "^1.1.0",
     "mysql2": "^3.12.0"
   }
 }
