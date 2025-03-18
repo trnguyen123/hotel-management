@@ -6,7 +6,7 @@ const paypal = require('@paypal/checkout-server-sdk');
 const { client } = require('../config/paypalConfig');
 
 router.post("/create", async (req, res) => {
-  const { full_name, gender, cmnd, email, phone, address, room_id, check_in_date, check_out_date, total_price, payment_status, payment_method } = req.body;
+  const { full_name, gender, cmnd, email, phone, address, room_id, check_in_date, check_out_date, total_price, payment_status, payment_method, services } = req.body;
 
   if (!full_name || !phone || !room_id || !check_in_date || !check_out_date || !total_price || !payment_status || !payment_method) {
     return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
@@ -20,7 +20,6 @@ router.post("/create", async (req, res) => {
 
     let customer_id;
     const [existingCustomer] = await db.execute("SELECT customer_id FROM customers WHERE phone_number = ?", [phone]);
-
     if (existingCustomer.length > 0) {
       customer_id = existingCustomer[0].customer_id;
     } else {
@@ -35,12 +34,27 @@ router.post("/create", async (req, res) => {
       "INSERT INTO bookings (customer_id, room_id, check_in_date, check_out_date, booking_date, status, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?, NOW(), 'booked', ?, ?, ?)",
       [customer_id, room_id, check_in_date, check_out_date, total_price, payment_status, payment_method]
     );
+    const booking_id = bookingResult.insertId;
 
     await db.execute("UPDATE rooms SET status = 'booked' WHERE room_id = ?", [room_id]);
 
+    // Lưu dịch vụ vào used_services (không có total_price)
+    if (services && Array.isArray(services) && services.length > 0) {
+      for (const service of services) {
+        const { service_id, quantity } = service;
+        if (!service_id || !quantity) {
+          return res.status(400).json({ message: "Thông tin dịch vụ không hợp lệ!" });
+        }
+        await db.execute(
+          "INSERT INTO used_services (booking_id, service_id, quantity) VALUES (?, ?, ?)",
+          [booking_id, service_id, quantity]
+        );
+      }
+    }
+
     if (email) {
       await sendBookingConfirmation(email, {
-        booking_id: bookingResult.insertId,
+        booking_id,
         check_in_date,
         check_out_date,
         payment_status,
@@ -53,53 +67,21 @@ router.post("/create", async (req, res) => {
       request.prefer("return=representation");
       request.requestBody({
         intent: 'CAPTURE',
-        purchase_units: [{ amount: { currency_code: 'USD', value: total_price } }]
+        purchase_units: [{ amount: { currency_code: 'USD', value: (total_price * 0.00004).toFixed(2) } }] // Chuyển VND sang USD nếu cần
       });
 
       try {
         const order = await client.execute(request);
-        return res.status(201).json({ message: "Đặt phòng thành công!", booking_id: bookingResult.insertId, paypal_order_id: order.result.id });
+        return res.status(201).json({ message: "Đặt phòng thành công!", booking_id, paypal_order_id: order.result.id });
       } catch (error) {
         console.error("Lỗi khi tạo đơn hàng PayPal:", error);
         return res.status(500).json({ message: "Lỗi khi tạo đơn hàng PayPal!" });
       }
     }
 
-    res.status(201).json({ message: "Đặt phòng thành công!", booking_id: bookingResult.insertId });
+    res.status(201).json({ message: "Đặt phòng thành công!", booking_id });
   } catch (error) {
     console.error("Lỗi khi đặt phòng:", error);
-    res.status(500).json({ message: "Lỗi server!" });
-  }
-});
-
-// API Nhận phòng
-router.post("/checkin", async (req, res) => {
-  const { booking_id } = req.body;
-
-  if (!booking_id) {
-    return res.status(400).json({ message: "Thiếu mã đặt phòng!" });
-  }
-
-  try {
-    const [booking] = await db.execute("SELECT room_id, status FROM bookings WHERE booking_id = ?", [booking_id]);
-
-    if (booking.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
-    }
-
-    if (booking[0].status !== "booked") {
-      return res.status(400).json({ message: "Khách chưa nhận phòng!" });
-    }
-
-    const room_id = booking[0].room_id;
-
-    await db.execute("UPDATE bookings SET status = 'checked_in' WHERE booking_id = ?", [booking_id]);
-    await db.execute("UPDATE rooms SET status = 'occupied' WHERE room_id = ?", [room_id]);
-
-    res.status(200).json({ message: "Nhận phòng thành công!" });
-
-  } catch (error) {
-    console.error("Lỗi khi nhận phòng:", error);
     res.status(500).json({ message: "Lỗi server!" });
   }
 });

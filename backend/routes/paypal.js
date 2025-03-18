@@ -4,9 +4,8 @@ const { client } = require('../config/paypalConfig');
 const paypal = require('@paypal/checkout-server-sdk');
 const db = require("../config/db");
 const sendBookingConfirmation = require("./email");
-
 router.post('/create-booking', async (req, res) => {
-  const { full_name, gender, address, phone, cmnd, email, room_id, check_in_date, check_out_date, total_price, currency } = req.body;
+  const { full_name, gender, address, phone, cmnd, email, room_id, check_in_date, check_out_date, total_price, currency, services } = req.body;
 
   if (!full_name || !phone || !room_id || !check_in_date || !check_out_date || !total_price || !currency) {
     return res.status(400).json({ error: 'Thiếu thông tin đặt phòng!' });
@@ -22,7 +21,6 @@ router.post('/create-booking', async (req, res) => {
     // Kiểm tra khách hàng đã tồn tại chưa
     let customer_id;
     const [existingCustomer] = await db.execute("SELECT customer_id FROM customers WHERE phone_number = ?", [phone]);
-
     if (existingCustomer.length > 0) {
       customer_id = existingCustomer[0].customer_id;
     } else {
@@ -38,8 +36,21 @@ router.post('/create-booking', async (req, res) => {
       "INSERT INTO bookings (customer_id, room_id, check_in_date, check_out_date, booking_date, status, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?, NOW(), 'booked', ?, 'pending', 'paypal')",
       [customer_id, room_id, check_in_date, check_out_date, total_price]
     );
-
     const booking_id = bookingResult.insertId;
+
+    // Lưu dịch vụ vào used_service
+    if (services && Array.isArray(services) && services.length > 0) {
+      for (const service of services) {
+        const { service_id, quantity } = service;
+        if (!service_id || !quantity) {
+          return res.status(400).json({ message: "Thông tin dịch vụ không hợp lệ!" });
+        }
+        await db.execute(
+          "INSERT INTO used_services (booking_id, service_id, quantity) VALUES (?, ?, ?)",
+          [booking_id, service_id, quantity]
+        );
+      }
+    }
 
     // Cập nhật trạng thái phòng thành 'booked'
     await db.execute("UPDATE rooms SET status = 'booked' WHERE room_id = ?", [room_id]);
@@ -66,21 +77,18 @@ router.post('/create-booking', async (req, res) => {
       return res.status(500).json({ error: 'Không thể tạo đơn hàng PayPal!' });
     }
 
-    // **Lấy `approve_url` để redirect người dùng thanh toán**
     const approve_url = order.result.links.find(link => link.rel === "approve")?.href;
-
     if (!approve_url) {
       return res.status(500).json({ error: 'Không thể lấy URL thanh toán từ PayPal!' });
     }
 
+    // Lưu booking_id vào localStorage hoặc trả về để frontend xử lý
     res.json({ order_id: order.result.id, booking_id, approve_url });
-
   } catch (error) {
     console.error("Lỗi khi tạo booking:", error);
     res.status(500).json({ error: 'Không thể tạo đơn đặt phòng!' });
   }
 });
-
 
 router.post('/capture-order', async (req, res) => {
   console.log("Received data:", req.body);
@@ -105,8 +113,20 @@ router.post('/capture-order', async (req, res) => {
     request.requestBody({});
     const capture = await client.execute(request);
 
-    // Cập nhật DB
+    // Cập nhật payment_status thành 'paid'
     await db.execute("UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ?", [booking_id]);
+
+    // Gửi email xác nhận (nếu cần)
+    const [booking] = await db.execute("SELECT email FROM customers WHERE customer_id = (SELECT customer_id FROM bookings WHERE booking_id = ?)", [booking_id]);
+    if (booking[0].email) {
+      await sendBookingConfirmation(booking[0].email, {
+        booking_id,
+        check_in_date: orderDetails.result.purchase_units[0]?.reference_id?.check_in_date, // Tùy chỉnh nếu cần
+        check_out_date: orderDetails.result.purchase_units[0]?.reference_id?.check_out_date,
+        payment_status: 'paid',
+        payment_method: 'paypal',
+      });
+    }
 
     res.json({ message: 'Thanh toán thành công!', capture: capture.result });
   } catch (error) {
@@ -114,5 +134,4 @@ router.post('/capture-order', async (req, res) => {
     res.status(500).json({ error: 'Không thể xử lý thanh toán PayPal!' });
   }
 });
-
 module.exports = router;

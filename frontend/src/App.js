@@ -16,6 +16,7 @@ import ServiceManagement from "./pages/ServiceManagement";
 import VoucherManagement from "./pages/VoucherManagement";
 import RoomReportsPage from "./pages/RoomReportsPage";
 import RevenueManagement from "./pages/RevenueManagement";
+import PaymentSuccess from "./components/PaymentSuccess"; // Thêm import PaymentSuccess
 
 function App() {
   const [currentPage, setCurrentPage] = useState("Calendar");
@@ -62,33 +63,44 @@ function App() {
           {user && user.role === "manager" && <Sidebar />}
           <div className="content">
             <Routes>
+              {/* Routes cho receptionist */}
               {user && user.role === "receptionist" && (
                 <>
-                  <Route path="/calendar" element={
-                    <BookingProvider>
-                      <CalendarProvider>
-                        <Rooms />
-                      </CalendarProvider>
-                    </BookingProvider>
-                  } />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <BookingProvider>
+                        <CalendarProvider>
+                          <Rooms />
+                        </CalendarProvider>
+                      </BookingProvider>
+                    }
+                  />
                   <Route path="/service" element={<Service />} />
                 </>
               )}
+
+              {/* Routes cho service_staff */}
               {user && user.role === "service_staff" && (
                 <>
                   <Route path="/service" element={<Service />} />
                   <Route path="/reports" element={<Reports />} />
                 </>
               )}
+
+              {/* Routes cho manager */}
               {user && user.role === "manager" && (
                 <>
-                  <Route path="/calendar" element={
-                    <BookingProvider>
-                      <CalendarProvider>
-                        <Rooms />
-                      </CalendarProvider>
-                    </BookingProvider>
-                  } />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <BookingProvider>
+                        <CalendarProvider>
+                          <Rooms />
+                        </CalendarProvider>
+                      </BookingProvider>
+                    }
+                  />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/service" element={<Service />} />
                   <Route path="/admin" element={<Dashboard />} />
@@ -99,16 +111,23 @@ function App() {
                   <Route path="/admin/revenue" element={<RevenueManagement />} />
                 </>
               )}
-              {/* Các route công khai */}
-              <Route path="/calendar" element={
-                <BookingProvider>
-                  <CalendarProvider>
-                    <Rooms />
-                  </CalendarProvider>
-                </BookingProvider>
-              } />
+
+              {/* Routes công khai */}
+              <Route
+                path="/calendar"
+                element={
+                  <BookingProvider>
+                    <CalendarProvider>
+                      <Rooms />
+                    </CalendarProvider>
+                  </BookingProvider>
+                }
+              />
               <Route path="/service" element={<Service />} />
               <Route path="/reports" element={<Reports />} />
+
+              {/* Route cho PaymentSuccess */}
+              <Route path="/payment-success" element={<PaymentSuccess />} />
             </Routes>
           </div>
         </div>
