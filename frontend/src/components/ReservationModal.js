@@ -475,7 +475,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                     style={{ layout: "vertical" }}
                     createOrder={(data, actions) => {
                       // Tạo đơn hàng qua API thay vì trực tiếp
-                      return fetch("http://localhost:5000/api/booking/create-booking", {
+                      return fetch("http://localhost:5000/api/paypal/create-booking", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
