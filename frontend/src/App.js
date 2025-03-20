@@ -63,7 +63,6 @@ function App() {
           {user && user.role === "manager" && <Sidebar />}
           <div className="content">
             <Routes>
-              {/* Routes cho receptionist */}
               {user && user.role === "receptionist" && (
                 <>
                   <Route
@@ -79,16 +78,12 @@ function App() {
                   <Route path="/service" element={<Service />} />
                 </>
               )}
-
-              {/* Routes cho service_staff */}
               {user && user.role === "service_staff" && (
                 <>
                   <Route path="/service" element={<Service />} />
                   <Route path="/reports" element={<Reports />} />
                 </>
               )}
-
-              {/* Routes cho manager */}
               {user && user.role === "manager" && (
                 <>
                   <Route

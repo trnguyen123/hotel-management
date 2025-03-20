@@ -80,8 +80,8 @@ const BookingDetailsModal = ({ booking, onClose }) => {
             <h3>Thông tin phòng</h3>
             <p><strong>Loại phòng:</strong> {booking.room.room_type}</p>
             <p><strong>Số phòng:</strong> {booking.room.room_number}</p>
-            <p><strong>Ngày nhận phòng:</strong> {booking.check_in}</p>
-            <p><strong>Ngày trả phòng:</strong> {booking.check_out}</p>
+            <p><strong>Ngày nhận phòng:</strong> {formatDate(booking.check_in)}</p>
+            <p><strong>Ngày trả phòng:</strong> {formatDate(booking.check_out)}</p>
           </div>
         </div>
         <div className="modal-footer">

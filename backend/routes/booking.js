@@ -85,7 +85,39 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ message: "Lỗi server!" });
   }
 });
- 
+ // API Nhận phòng
+ router.post("/checkin", async (req, res) => {
+  const { booking_id } = req.body;
+
+  if (!booking_id) {
+    return res.status(400).json({ message: "Thiếu mã đặt phòng!" });
+  }
+
+  try {
+    const [booking] = await db.execute("SELECT room_id, status FROM bookings WHERE booking_id = ?", [booking_id]);
+
+    if (booking.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
+    }
+
+    if (booking[0].status !== "booked") {
+      return res.status(400).json({ message: "Phòng chưa được đặt hoặc đã nhận phòng!" });
+      return res.status(400).json({ message: "Khách chưa nhận phòng!" });
+    }
+
+    const room_id = booking[0].room_id;
+
+    await db.execute("UPDATE bookings SET status = 'checked_in' WHERE booking_id = ?", [booking_id]);
+    await db.execute("UPDATE rooms SET status = 'occupied' WHERE room_id = ?", [room_id]);
+
+    res.status(200).json({ message: "Nhận phòng thành công!" });
+
+  } catch (error) {
+    console.error("Lỗi khi nhận phòng:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+});
+
 // API Trả phòng
 router.post("/checkout", async (req, res) => {
     const { booking_id } = req.body;
