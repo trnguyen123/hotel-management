@@ -4,14 +4,13 @@ import "../Style/Service.css";
 function Service() {
   const [formData, setFormData] = useState({
     serviceName: "",
-    quantity: "", // Đổi từ createdDate thành quantity
+    quantity: "",
     roomNumber: "",
     customerName: "",
   });
 
-  const [services, setServices] = useState([]); // Lưu danh sách dịch vụ
+  const [services, setServices] = useState([]);
 
-  // Gọi API lấy danh sách dịch vụ
   useEffect(() => {
     fetch("http://localhost:5000/api/service/getAll")
       .then((response) => {
@@ -21,7 +20,7 @@ function Service() {
         return response.json();
       })
       .then((data) => {
-        setServices(data); // Lưu danh sách dịch vụ vào state
+        setServices(data);
       })
       .catch((error) => {
         console.error("Lỗi khi lấy danh sách dịch vụ:", error);
@@ -41,7 +40,7 @@ function Service() {
 
     const requestData = {
       service_name: formData.serviceName,
-      quantity: formData.quantity, // Gửi số lượng thay vì ngày tạo
+      quantity: formData.quantity,
       room_number: formData.roomNumber,
       customer_name: formData.customerName,
     };
@@ -64,11 +63,11 @@ function Service() {
           customerName: "",
         });
       } else {
-        alert(`Lỗi: ${result.message}`);
+        alert(`Lỗi: ${result.message || "Không thể tạo dịch vụ!"}`);
       }
     } catch (error) {
       console.error("Lỗi khi gửi dữ liệu:", error);
-      alert("Lỗi khi gửi dữ liệu!");
+      alert("Lỗi khi gửi dữ liệu, vui lòng thử lại!");
     }
   };
 
@@ -79,7 +78,6 @@ function Service() {
         <p className='service-subtitle'>Front desk management system</p>
 
         <form onSubmit={handleSubmit}>
-          {/* Chọn dịch vụ */}
           <div className='input-group'>
             <label htmlFor='serviceName'>Tên dịch vụ</label>
             <select
@@ -98,7 +96,6 @@ function Service() {
             </select>
           </div>
 
-          {/* Nhập số lượng */}
           <div className='input-group'>
             <label htmlFor='quantity'>Số lượng</label>
             <input
@@ -113,7 +110,6 @@ function Service() {
             />
           </div>
 
-          {/* Nhập số phòng */}
           <div className='input-group'>
             <label htmlFor='roomNumber'>Số phòng</label>
             <input
@@ -127,7 +123,6 @@ function Service() {
             />
           </div>
 
-          {/* Nhập tên khách hàng */}
           <div className='input-group'>
             <label htmlFor='customerName'>Tên khách hàng</label>
             <input

@@ -19,11 +19,14 @@ router.get("/getAll", async (req, res) => {
 router.post("/use", async (req, res) => {
     const { service_name, quantity, room_number, customer_name } = req.body;
 
+    // Kiểm tra các trường bắt buộc
     if (!service_name || !quantity || !room_number || !customer_name) {
         return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
     }
+
     try {
         let customerId, serviceId, price, totalPrice, bookingId;
+
         // Kiểm tra xem khách hàng đã tồn tại chưa
         const [existingCustomer] = await db.execute(
             "SELECT customer_id FROM customers WHERE full_name = ?",
@@ -39,12 +42,30 @@ router.post("/use", async (req, res) => {
             );
             customerId = newCustomer.insertId;
         }
-        // Lấy booking_id bằng customer_id từ bảng bookings
-        const [booking] = await db.execute(
-            "SELECT booking_id FROM bookings WHERE customer_id = ? ",
-            [customerId]
+
+        // Lấy room_id từ room_number trong bảng rooms
+        const [room] = await db.execute(
+            "SELECT room_id FROM rooms WHERE room_number = ?",
+            [room_number]
         );
-        bookingId = booking[0].booking_id; // Lấy đúng giá trị booking_id
+
+        if (!room || room.length === 0) {
+            return res.status(400).json({ message: "Số phòng không tồn tại!" });
+        }
+        const roomId = room[0].room_id;
+
+        // Lấy booking_id dựa trên customer_id và room_id
+        const [booking] = await db.execute(
+            "SELECT booking_id FROM bookings WHERE customer_id = ? AND room_id = ?",
+            [customerId, roomId]
+        );
+
+        // Kiểm tra xem booking có tồn tại không
+        if (!booking || booking.length === 0) {
+            return res.status(400).json({ message: "Không tìm thấy booking cho khách hàng và phòng này!" });
+        }
+        bookingId = booking[0].booking_id;
+
         // Lấy thông tin dịch vụ từ bảng services
         const [service] = await db.execute(
             "SELECT service_id, price FROM services WHERE service_name = ?",
@@ -55,12 +76,13 @@ router.post("/use", async (req, res) => {
         }
         serviceId = service[0].service_id;
         price = service[0].price;
-        totalPrice = quantity * price;
+
         // Lưu vào bảng used_services
         await db.execute(
-            "INSERT INTO used_services (booking_id, service_id, quantity, total_price) VALUES (?, ?, ?, ?)",
-            [bookingId, serviceId, quantity, totalPrice]
+            "INSERT INTO used_services (booking_id, service_id, quantity) VALUES (?, ?, ?)",
+            [bookingId, serviceId, quantity]
         );
+
         res.json({ message: "Dịch vụ đã được sử dụng thành công!" });
     } catch (error) {
         console.error("Lỗi khi lưu dịch vụ:", error);
