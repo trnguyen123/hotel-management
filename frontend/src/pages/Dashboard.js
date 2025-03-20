@@ -3,6 +3,8 @@ import { FaUsers, FaConciergeBell, FaTicketAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import '../Style/Dashboard.css';
 
 // Đăng ký các thành phần cần thiết cho Chart.js
@@ -40,6 +42,8 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null); // State for selected date
+  const [bookingsData, setBookingsData] = useState([]); // Store bookings data for filtering
 
   // Hàm quy đổi sang VND
   const EXCHANGE_RATE = 25000;
@@ -68,7 +72,10 @@ const Dashboard = () => {
 
         // Gọi API lấy danh sách bookings để tính tổng tiền
         const bookingsResponse = await fetch('http://localhost:5000/api/booking/getAll');
-        const bookingsData = await bookingsResponse.json();
+        const bookings = await bookingsResponse.json();
+
+        // Lưu dữ liệu bookings để sử dụng cho việc lọc
+        setBookingsData(bookings);
 
         // Cập nhật stats
         setStats(prevStats => {
@@ -79,41 +86,81 @@ const Dashboard = () => {
           return newStats;
         });
 
-        // Xử lý dữ liệu bookings để tạo biểu đồ
-        const revenueByMonth = {};
-        bookingsData.forEach(booking => {
-          const checkInDate = new Date(booking.check_in_date);
-          const monthYear = `${checkInDate.getFullYear()}-${String(checkInDate.getMonth() + 1).padStart(2, '0')}`;
-          const revenue = convertToVND(booking.total_price, booking.payment_method);
-          revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + revenue;
-        });
-
-        // Chuẩn bị dữ liệu cho biểu đồ
-        const labels = Object.keys(revenueByMonth).sort();
-        const data = labels.map(month => revenueByMonth[month] / 1000000); // Quy đổi sang triệu VND
-
-        setChartData({
-          labels,
-          datasets: [
-            {
-              label: 'Doanh thu (triệu VND)',
-              data,
-              backgroundColor: 'rgba(76, 201, 240, 0.6)',
-              borderColor: 'rgba(76, 201, 240, 1)',
-              borderWidth: 1,
-            },
-          ],
-        });
+        // Ban đầu hiển thị dữ liệu theo tháng (giống như trước)
+        updateChartData(bookings);
 
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Lỗi khi lấy dữ liệu dashboard:', error);
         setLoading(false);
       }
     };
 
     fetchDashboardData();
   }, []);
+
+  // Hàm cập nhật dữ liệu biểu đồ (dựa trên booking_date)
+  const updateChartData = (bookings, date = null) => {
+    let labels = [];
+    let data = [];
+
+    if (date) {
+      // Lọc dữ liệu theo ngày được chọn
+      const selectedDateString = date.toISOString().split('T')[0]; // Định dạng YYYY-MM-DD
+      const filteredBookings = bookings.filter(booking => {
+        const bookingDate = new Date(booking.booking_date).toISOString().split('T')[0];
+        return bookingDate === selectedDateString;
+      });
+
+      // Tính doanh thu cho ngày được chọn
+      const dailyRevenue = filteredBookings.reduce((total, booking) => {
+        return total + convertToVND(booking.total_price, booking.payment_method);
+      }, 0);
+
+      labels = [selectedDateString];
+      data = [dailyRevenue / 1000000]; // Quy đổi sang triệu VND
+    } else {
+      // Hiển thị dữ liệu theo tháng (mặc định)
+      const revenueByMonth = {};
+      bookings.forEach(booking => {
+        const bookingDate = new Date(booking.booking_date);
+        const year = bookingDate.getFullYear();
+        const monthYear = `${year}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
+        const revenue = convertToVND(booking.total_price, booking.payment_method);
+        console.log(`Booking ID: ${booking.booking_id}, Ngày đặt: ${booking.booking_date}, Doanh thu: ${revenue}, Trạng thái: ${booking.payment_status}, Tháng: ${monthYear}`);
+        if (booking.payment_status === 'paid') { // Chỉ tính các booking đã thanh toán
+          revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + revenue;
+        }
+      });
+
+      console.log('Doanh thu theo tháng:', revenueByMonth);
+      labels = Object.keys(revenueByMonth).sort();
+      data = labels.map(month => revenueByMonth[month] / 1000000); // Quy đổi sang triệu VND
+    }
+
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: 'Doanh thu (triệu VND)',
+          data,
+          backgroundColor: 'rgba(76, 201, 240, 0.6)',
+          borderColor: 'rgba(76, 201, 240, 1)',
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
+
+  // Xử lý khi người dùng chọn ngày
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    if (date) {
+      updateChartData(bookingsData, date); // Cập nhật biểu đồ theo ngày
+    } else {
+      updateChartData(bookingsData); // Quay lại hiển thị theo tháng nếu không chọn ngày
+    }
+  };
 
   const handleStatClick = (path) => {
     navigate(path);
@@ -125,10 +172,16 @@ const Dashboard = () => {
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          color: "#000", // Màu chữ đen cho legend
+          font: {
+            weight: "bold" // Làm đậm chữ
+          }
+        }
       },
       title: {
         display: true,
-        text: 'Thống kê doanh thu theo tháng',
+        text: 'Thống kê doanh thu theo ' + (selectedDate ? 'ngày' : 'tháng'),
       },
     },
     scales: {
@@ -142,7 +195,7 @@ const Dashboard = () => {
       x: {
         title: {
           display: true,
-          text: 'Tháng',
+          text: selectedDate ? 'Ngày' : 'Tháng',
         },
       },
     },
@@ -175,8 +228,19 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
+          {/* Thanh tìm kiếm theo ngày */}
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <label>Chọn ngày để xem thống kê: </label>
+            <DatePicker
+              selected={selectedDate}
+              onChange={handleDateChange}
+              dateFormat="dd/MM/yyyy"
+              placeholderText="Chọn ngày"
+              isClearable // Cho phép xóa ngày đã chọn
+            />
+          </div>
           {/* Biểu đồ doanh thu */}
-          <div className="chart-section" style={{ marginTop: '20px', maxWidth: '800px', margin: '0 auto' }}>
+          <div className="chart-section">
             {chartData && <Bar data={chartData} options={chartOptions} />}
           </div>
         </>

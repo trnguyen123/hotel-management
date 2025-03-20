@@ -97,3 +97,25 @@
   margin-bottom: 10px;
   color: #333;
 }
+.chart-section {
+  margin-top: 20px;
+  max-width: 1000px; 
+  width: 90%; 
+  height: 500px; 
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.chart-section canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.react-datepicker-wrapper {
+  display: inline-block;
+}
