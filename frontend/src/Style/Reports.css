@@ -39,3 +39,58 @@
   border: 1px solid #ddd;
   border-radius: 4px;
 }
+
+/* Nút "Tạo Báo Cáo Mới" trong header */
+.add-reservation {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.add-reservation:hover {
+  background-color: #2980b9;
+}
+
+/* Các nút trong modal */
+.modal-content button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+/* Nút "Lưu Báo Cáo" */
+.modal-content button:first-of-type {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.modal-content button:first-of-type:hover {
+  background-color: #27ae60;
+}
+
+/* Nút "Hủy" */
+.modal-content button:last-of-type {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+}
+
+.modal-content button:last-of-type:hover {
+  background-color: #dfe6e9;
+}
+
+/* Trạng thái disabled cho cả hai nút trong modal */
+.modal-content button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

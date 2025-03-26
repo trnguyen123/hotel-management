@@ -214,23 +214,23 @@ const RoomCalendar = ({ roomType }) => {
                         const bookingStartDate = parseDateInput(booking.check_in);
                         const bookingEndDate = parseDateInput(booking.check_out);
 
-                        console.log("Calendar Start Date:", calendarStartDate);
-                        console.log("Booking Check-in:", bookingStartDate);
-                        console.log("Booking Check-out:", bookingEndDate);
-
-                        // Kiểm tra nếu ngày check-in không hợp lệ
+                        // Kiểm tra ngày hợp lệ
                         if (!bookingStartDate || isNaN(bookingStartDate.getTime())) return null;
                         if (!bookingEndDate || isNaN(bookingEndDate.getTime())) return null;
 
-                        // Tính toán vị trí bắt đầu dựa vào ngày đầu của lịch
-                        const startCol = getGridColumn(calendarStartDate, bookingStartDate, dayRange) + 1; // Cộng thêm 1 để tránh lệch cột
-                        console.log("Computed StartCol:", startCol, "for booking:", booking.booking_id);
+                        // Tính toán vị trí cột bắt đầu
+                        const startCol = getGridColumn(calendarStartDate, bookingStartDate, dayRange) + 1; // +1 vì grid bắt đầu từ 1
+                        if (startCol <= 0) return null; // Không hiển thị nếu booking nằm trước calendarStartDate
 
+                        // Tính độ dài booking
                         let duration = Math.ceil((bookingEndDate - bookingStartDate) / (1000 * 60 * 60 * 24));
                         if (duration < 1) duration = 1;
 
                         const endCol = startCol + duration;
-                        console.log("Grid Column Range:", `${startCol} / ${endCol}`);
+
+                        // Chỉ hiển thị nếu booking nằm trong phạm vi dayRange
+                        if (startCol > dayRange + 1) return null;
+
                         return (
                           <div
                             key={index}
@@ -250,7 +250,7 @@ const RoomCalendar = ({ roomType }) => {
                             onClick={() => handleBookingClick(booking)}
                           >
                             <span className="search-icon">○</span>
-                            {booking.customer} - {booking.payment_method} {/* Hiển thị thêm payment_method */}
+                            {booking.customer} - {booking.payment_method}
                           </div>
                         );
                       })}
@@ -265,10 +265,10 @@ const RoomCalendar = ({ roomType }) => {
       <ReservationModal
         isOpen={showReservationModal}
         onClose={() => setShowReservationModal(false)}
-        onBookingCreated={handleBookingCreated} // Truyền handleBookingCreated vào ReservationModal
+        onBookingCreated={handleBookingCreated}
         selectedBooking={selectedBooking}
         onBookingDetailsClosed={() => setShowReservationModal(false)}
-        roomType={roomType} // Truyền roomType vào ReservationModal
+        roomType={roomType}
         rooms={rooms.map(room => room.room_number)}
       />
     </div>

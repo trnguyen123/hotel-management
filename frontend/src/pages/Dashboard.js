@@ -103,41 +103,48 @@ const Dashboard = () => {
   const updateChartData = (bookings, date = null) => {
     let labels = [];
     let data = [];
-
+  
     if (date) {
-      // Lọc dữ liệu theo ngày được chọn
-      const selectedDateString = date.toISOString().split('T')[0]; // Định dạng YYYY-MM-DD
+      // Chuyển ngày được chọn sang múi giờ UTC
+      const utcDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      const year = utcDate.getUTCFullYear();
+      const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0, cần +1
+      const day = String(utcDate.getUTCDate()).padStart(2, '0');
+      const selectedDateString = `${year}-${month}-${day}`; // Định dạng YYYY-MM-DD ở UTC
+  
       const filteredBookings = bookings.filter(booking => {
-        const bookingDate = new Date(booking.booking_date).toISOString().split('T')[0];
+        const bookingDateObj = new Date(booking.booking_date);
+        const bookingYear = bookingDateObj.getUTCFullYear();
+        const bookingMonth = String(bookingDateObj.getUTCMonth() + 1).padStart(2, '0');
+        const bookingDay = String(bookingDateObj.getUTCDate()).padStart(2, '0');
+        const bookingDate = `${bookingYear}-${bookingMonth}-${bookingDay}`;
         return bookingDate === selectedDateString;
       });
-
+  
       // Tính doanh thu cho ngày được chọn
       const dailyRevenue = filteredBookings.reduce((total, booking) => {
         return total + convertToVND(booking.total_price, booking.payment_method);
       }, 0);
-
+  
       labels = [selectedDateString];
       data = [dailyRevenue / 1000000]; // Quy đổi sang triệu VND
     } else {
-      // Hiển thị dữ liệu theo tháng (mặc định)
+      // Hiển thị dữ liệu theo tháng (giữ nguyên logic cũ)
       const revenueByMonth = {};
       bookings.forEach(booking => {
         const bookingDate = new Date(booking.booking_date);
-        const year = bookingDate.getFullYear();
-        const monthYear = `${year}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
+        const year = bookingDate.getUTCFullYear();
+        const monthYear = `${year}-${String(bookingDate.getUTCMonth() + 1).padStart(2, '0')}`;
         const revenue = convertToVND(booking.total_price, booking.payment_method);
-        console.log(`Booking ID: ${booking.booking_id}, Ngày đặt: ${booking.booking_date}, Doanh thu: ${revenue}, Trạng thái: ${booking.payment_status}, Tháng: ${monthYear}`);
-        if (booking.payment_status === 'paid') { // Chỉ tính các booking đã thanh toán
+        if (booking.payment_status === 'paid') {
           revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + revenue;
         }
       });
-
-      console.log('Doanh thu theo tháng:', revenueByMonth);
+  
       labels = Object.keys(revenueByMonth).sort();
-      data = labels.map(month => revenueByMonth[month] / 1000000); // Quy đổi sang triệu VND
+      data = labels.map(month => revenueByMonth[month] / 1000000);
     }
-
+  
     setChartData({
       labels,
       datasets: [

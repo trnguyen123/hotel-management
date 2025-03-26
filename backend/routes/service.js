@@ -90,7 +90,7 @@ router.post("/use", async (req, res) => {
     }
 });
 
-// API tạo dịch vụ mới
+// API thêm dịch vụ mới
 router.post("/create", async (req, res) => {
     const { service_name, price, unit, status } = req.body;
 
