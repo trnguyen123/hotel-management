@@ -4,6 +4,7 @@ const { client } = require('../config/paypalConfig');
 const paypal = require('@paypal/checkout-server-sdk');
 const db = require("../config/db");
 const sendBookingConfirmation = require("./email");
+
 router.post('/create-booking', async (req, res) => {
   const { full_name, gender, address, phone, cmnd, email, room_id, check_in_date, check_out_date, total_price, currency, services } = req.body;
 
@@ -20,7 +21,7 @@ router.post('/create-booking', async (req, res) => {
 
     // Kiểm tra khách hàng đã tồn tại chưa
     let customer_id;
-    const [existingCustomer] = await db.execute("SELECT customer_id FROM customers WHERE phone_number = ?", [phone]);
+    const [existingCustomer] = await db.execute("SELECT customer_id FROM customers WHERE full_name = ?", [full_name]);
     if (existingCustomer.length > 0) {
       customer_id = existingCustomer[0].customer_id;
     } else {
@@ -55,7 +56,7 @@ router.post('/create-booking', async (req, res) => {
     // Cập nhật trạng thái phòng thành 'booked'
     await db.execute("UPDATE rooms SET status = 'booked' WHERE room_id = ?", [room_id]);
 
-    // Tạo đơn hàng PayPal
+    // Tạo đơn hàng PayPal (bỏ return_url và cancel_url)
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
     request.requestBody({
@@ -65,11 +66,7 @@ router.post('/create-booking', async (req, res) => {
           currency_code: currency,
           value: total_price
         }
-      }],
-      application_context: {
-        return_url: "http://localhost:3000/payment-success",
-        cancel_url: "http://localhost:3000/payment-cancel"
-      }
+      }]
     });
 
     const order = await client.execute(request);
@@ -82,7 +79,7 @@ router.post('/create-booking', async (req, res) => {
       return res.status(500).json({ error: 'Không thể lấy URL thanh toán từ PayPal!' });
     }
 
-    // Lưu booking_id vào localStorage hoặc trả về để frontend xử lý
+    // Trả về order_id, booking_id và approve_url
     res.json({ order_id: order.result.id, booking_id, approve_url });
   } catch (error) {
     console.error("Lỗi khi tạo booking:", error);
@@ -100,7 +97,7 @@ router.post('/capture-order', async (req, res) => {
   }
 
   try {
-    
+    // Cập nhật trạng thái thanh toán thành 'paid'
     await db.execute("UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ?", [booking_id]);
 
     // Gửi email xác nhận (nếu cần)
@@ -120,6 +117,47 @@ router.post('/capture-order', async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi xử lý thanh toán PayPal:", error);
     res.status(500).json({ error: 'Không thể xử lý thanh toán PayPal!' });
+  }
+});
+
+router.post('/cancel-order', async (req, res) => {
+  const { booking_id } = req.body;
+
+  if (!booking_id) {
+    return res.status(400).json({ error: 'Thiếu booking_id!' });
+  }
+
+  try {
+    // Kiểm tra trạng thái đơn đặt phòng
+    const [booking] = await db.execute(
+      "SELECT payment_status, room_id FROM bookings WHERE booking_id = ?",
+      [booking_id]
+    );
+
+    if (booking.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy đơn đặt phòng!' });
+    }
+
+    if (booking[0].payment_status === 'pending') {
+      // Cập nhật trạng thái đơn đặt phòng thành 'cancelled'
+      await db.execute(
+        "UPDATE bookings SET payment_status = 'cancelled', status = 'cancelled', cancellation_date = NOW() WHERE booking_id = ?",
+        [booking_id]
+      );
+
+      // Giải phóng phòng bằng cách cập nhật trạng thái về 'available'
+      await db.execute(
+        "UPDATE rooms SET status = 'available' WHERE room_id = ?",
+        [booking[0].room_id]
+      );
+
+      return res.json({ message: 'Đã hủy đơn đặt phòng thành công!' });
+    } else {
+      return res.status(400).json({ error: 'Đơn đặt phòng không thể hủy vì đã được thanh toán hoặc hủy trước đó!' });
+    }
+  } catch (error) {
+    console.error("Lỗi khi hủy đơn đặt phòng:", error);
+    res.status(500).json({ error: 'Không thể hủy đơn đặt phòng!' });
   }
 });
 

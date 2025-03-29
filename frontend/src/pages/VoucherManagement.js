@@ -13,10 +13,22 @@ const VoucherManagement = () => {
   });
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredVouchers, setFilteredVouchers] = useState([]);
 
   useEffect(() => {
     fetchVouchers();
   }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const filtered = vouchers.filter(voucher => 
+        (voucher.voucher_code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      );
+      setFilteredVouchers(filtered);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, vouchers]);
 
   const fetchVouchers = async () => {
     try {
@@ -26,9 +38,11 @@ const VoucherManagement = () => {
       }
       const data = await response.json();
       setVouchers(data);
+      setFilteredVouchers(data);
     } catch (error) {
       console.error('Error fetching vouchers:', error);
       setVouchers([]);
+      setFilteredVouchers([]);
     }
   };
 
@@ -53,18 +67,31 @@ const VoucherManagement = () => {
       voucher_code: '', 
       discount_percentage: '', 
       start_date: '', 
-      expiration_date: '' 
+      expiration_date: ''
     });
     setIsEdit(false);
     setShowModal(true);
   };
 
   const handleEditVoucher = (voucher) => {
+    // Chuyển đổi ngày từ định dạng ISO sang YYYY-MM-DD, cộng thêm 1 ngày để khớp với database
+    const startDate = new Date(voucher.start_date);
+    startDate.setUTCDate(startDate.getUTCDate() + 1); // Cộng 1 ngày
+    const expirationDate = new Date(voucher.expiration_date);
+    expirationDate.setUTCDate(expirationDate.getUTCDate() + 1); // Cộng 1 ngày
+
+    const formatDateToString = (date) => {
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     setCurrentVoucher({
       voucher_code: voucher.voucher_code,
       discount_percentage: voucher.discount_percentage,
-      start_date: voucher.start_date.split('T')[0], // Chuẩn hóa định dạng YYYY-MM-DD
-      expiration_date: voucher.expiration_date.split('T')[0]
+      start_date: formatDateToString(startDate),
+      expiration_date: formatDateToString(expirationDate)
     });
     setIsEdit(true);
     setShowModal(true);
@@ -79,7 +106,7 @@ const VoucherManagement = () => {
         if (response.ok) {
           const deletedVoucher = vouchers.find(v => v.voucher_code === voucher_code);
           addRecentActivity(`Đã xóa voucher ${deletedVoucher.voucher_code}`);
-          fetchVouchers(); // Cập nhật danh sách từ server
+          fetchVouchers();
         } else {
           const errorData = await response.json();
           console.error('Failed to delete voucher:', errorData);
@@ -95,16 +122,23 @@ const VoucherManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Chuẩn hóa ngày trước khi gửi lên server, không cần trừ 1 ngày
+      const formatDateForServer = (dateString) => {
+        // Tách chuỗi YYYY-MM-DD để tránh lệch múi giờ
+        const [year, month, day] = dateString.split('-');
+        // Trả về định dạng YYYY-MM-DD
+        return `${year}-${month}-${day}`;
+      };
+
       const payload = {
         voucher_code: currentVoucher.voucher_code,
         discount_percentage: currentVoucher.discount_percentage,
-        start_date: currentVoucher.start_date,
-        expiration_date: currentVoucher.expiration_date
+        start_date: formatDateForServer(currentVoucher.start_date),
+        expiration_date: formatDateForServer(currentVoucher.expiration_date)
       };
       let activityMessage = '';
 
       if (isEdit) {
-        console.log('Dữ liệu gửi đi (PUT):', payload);
         const response = await fetch(`http://localhost:5000/api/voucher/update/${currentVoucher.voucher_code}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -114,7 +148,7 @@ const VoucherManagement = () => {
           activityMessage = `Đã cập nhật voucher ${currentVoucher.voucher_code}`;
           addRecentActivity(activityMessage);
           setShowModal(false);
-          window.location.reload(); // Refresh trang
+          fetchVouchers();
         } else {
           const errorData = await response.json();
           console.error('Lỗi khi cập nhật voucher:', errorData);
@@ -122,7 +156,6 @@ const VoucherManagement = () => {
           return;
         }
       } else {
-        console.log('Dữ liệu gửi đi (POST):', payload);
         const response = await fetch('http://localhost:5000/api/voucher/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -132,7 +165,7 @@ const VoucherManagement = () => {
           activityMessage = `Đã thêm voucher mới ${currentVoucher.voucher_code}`;
           addRecentActivity(activityMessage);
           setShowModal(false);
-          window.location.reload(); // Refresh trang
+          fetchVouchers();
         } else {
           const errorData = await response.json();
           console.error('Lỗi khi thêm voucher:', errorData);
@@ -151,9 +184,15 @@ const VoucherManagement = () => {
     setCurrentVoucher({ ...currentVoucher, [name]: value });
   };
 
-  const filteredVouchers = vouchers.filter(voucher => 
-    (voucher.voucher_code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  // Hàm định dạng ngày để hiển thị trong bảng, cộng 1 ngày để khớp với database
+  const formatDateForDisplay = (dateString) => {
+    const date = new Date(dateString);
+    date.setUTCDate(date.getUTCDate() + 1); // Cộng 1 ngày
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${day}/${month}/${year}`; // Định dạng DD/MM/YYYY
+  };
 
   return (
     <div className="management-page">
@@ -175,6 +214,15 @@ const VoucherManagement = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
+            {searchTerm && (
+              <button 
+                className="btn" 
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}
+                onClick={() => setSearchTerm('')}
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 
@@ -194,11 +242,11 @@ const VoucherManagement = () => {
               {filteredVouchers.length > 0 ? (
                 filteredVouchers.map((voucher, index) => (
                   <tr key={voucher.voucher_code}>
-                    <td>{index + 1}</td> {/* STT tự tạo */}
+                    <td>{index + 1}</td>
                     <td>{voucher.voucher_code}</td>
                     <td>{voucher.discount_percentage}%</td>
-                    <td>{new Date(voucher.start_date).toLocaleDateString('vi-VN')}</td>
-                    <td>{new Date(voucher.expiration_date).toLocaleDateString('vi-VN')}</td>
+                    <td>{formatDateForDisplay(voucher.start_date)}</td>
+                    <td>{formatDateForDisplay(voucher.expiration_date)}</td>
                     <td className="actions">
                       <button className="btn btn-edit" onClick={() => handleEditVoucher(voucher)}>
                         <FaEdit />
@@ -249,6 +297,7 @@ const VoucherManagement = () => {
                     required 
                     min="0" 
                     max="100"
+                    step="0.01"
                     className="form-control"
                   />
                 </div>

@@ -165,11 +165,27 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  color: white; /* Đặt màu chữ mặc định là trắng cho tất cả nút */
+  transition: background-color 0.3s; /* Hiệu ứng chuyển màu khi hover */
 }
 
+/* Nút "Hủy bỏ" - Màu đỏ */
+.modal-footer button.cancel-button {
+  background-color: #ff0000; /* Màu đỏ */
+}
+
+/* Nút "Xác nhận đặt phòng" - Màu xanh lá */
 .modal-footer button.confirm-button {
-  background-color: #4CAF50;
-  color: white;
+  background-color: #00cc00; /* Màu xanh lá đậm hơn một chút */
+}
+
+/* Hiệu ứng hover */
+.modal-footer button.cancel-button:hover {
+  background-color: #cc0000; /* Đỏ đậm hơn khi hover */
+}
+
+.modal-footer button.confirm-button:hover {
+  background-color: #009900; /* Xanh lá đậm hơn khi hover */
 }
 
 .payment-section {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../Style/ReservationModal.css";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; // Thêm lại PayPal
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; // Thêm PayPalScriptProvider, PayPalButtons
 
 const formatDate = (date) => {
   const d = new Date(date);
@@ -122,26 +122,27 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
   }, [roomType]);
 
   useEffect(() => {
+    let mounted = true;
     const fetchServices = async () => {
       const response = await fetch("http://localhost:5000/api/service/getAll");
       const data = await response.json();
-      setServices(data);
+      if (mounted) setServices(data);
     };
     const fetchVouchers = async () => {
       const response = await fetch("http://localhost:5000/api/voucher/getAll");
       const data = await response.json();
-      setVouchers(data);
+      if (mounted) setVouchers(data);
     };
     const fetchRooms = async () => {
       const response = await fetch("http://localhost:5000/api/room/getNumberAndType");
       const data = await response.json();
-      setRoomList(data);
+      if (mounted) setRoomList(data);
     };
     const fetchExchangeRate = async () => {
       try {
         const response = await fetch("https://api.exchangerate-api.com/v4/latest/VND");
         const data = await response.json();
-        setExchangeRate(data.rates.USD);
+        if (mounted) setExchangeRate(data.rates.USD);
       } catch (error) {
         console.error("Error fetching exchange rate:", error);
       }
@@ -150,6 +151,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
     fetchVouchers();
     fetchRooms();
     fetchExchangeRate();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -239,6 +241,10 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.room_id || !formData.check_in_date || !formData.check_out_date) {
+      alert("Vui lòng điền đầy đủ thông tin phòng và ngày!");
+      return;
+    }
     const color = formData.payment_method === "cash" ? "#4CAF50" : "#FFA500";
     const bookingDetails = {
       full_name: formData.full_name,
@@ -272,9 +278,12 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
         if (response.ok) {
           const { paymentUrl } = await response.json();
           window.location.href = paymentUrl;
+        } else {
+          alert("Không thể tạo URL thanh toán VNPay!");
         }
       } catch (error) {
         console.error("Error creating VNPay payment URL:", error);
+        alert("Có lỗi xảy ra khi tạo URL thanh toán VNPay!");
       }
       return;
     }
@@ -289,19 +298,22 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
         const booking = await response.json();
         const bookingWithGuest = { ...booking, guest: formData.full_name, color };
         onBookingCreated(bookingWithGuest, totalPrice);
+        alert("Đặt phòng thành công!");
         onClose();
         window.location.reload();
+      } else {
+        alert("Không thể tạo đặt phòng!");
       }
     } catch (error) {
       console.error("Error creating booking:", error);
+      alert("Có lỗi xảy ra khi tạo đặt phòng!");
     }
   };
 
-  // Hàm xử lý thành công PayPal
   const handlePayPalSuccess = async (details, data) => {
     const orderID = data.orderID;
-    const booking_id = localStorage.getItem("booking_id"); // Lấy booking_id từ localStorage
-    console.log("Capture details:", details); // Log chi tiết capture để kiểm tra
+    const booking_id = localStorage.getItem("booking_id");
+    console.log("Capture details:", details);
     try {
       const response = await fetch("http://localhost:5000/api/paypal/capture-order", {
         method: "POST",
@@ -311,12 +323,37 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
       if (response.ok) {
         const result = await response.json();
         console.log("Thanh toán thành công:", result);
+        alert("Thanh toán PayPal thành công!");
+        localStorage.removeItem("booking_id");
         onClose();
         window.location.reload();
+      } else {
+        alert("Không thể xử lý thanh toán PayPal!");
       }
     } catch (error) {
       console.error("Error capturing PayPal payment:", error);
+      alert("Có lỗi xảy ra khi xử lý thanh toán PayPal!");
     }
+  };
+
+  const handlePayPalCancel = () => {
+    const booking_id = localStorage.getItem("booking_id");
+    fetch("http://localhost:5000/api/paypal/cancel-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ booking_id })
+    })
+      .then(response => response.json())
+      .then(result => {
+        console.log("Hủy thanh toán thành công:", result);
+        alert("Đã hủy thanh toán PayPal thành công!");
+        localStorage.removeItem("booking_id");
+        onClose();
+      })
+      .catch(error => {
+        console.error("Lỗi khi hủy thanh toán:", error);
+        alert("Có lỗi xảy ra khi hủy thanh toán PayPal!");
+      });
   };
 
   const filteredRooms = roomList.filter(room => room.room_type === formData.room_type);
@@ -467,7 +504,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" onClick={onClose}>
+              <button type="button" className="cancel-button" onClick={onClose}>
                 Huỷ bỏ
               </button>
               {formData.payment_method === "paypal" ? (
@@ -506,8 +543,11 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                     }}
                     onApprove={(data, actions) => {
                       return actions.order.capture().then((details) => {
-                        return handlePayPalSuccess(details, data); // Truyền cả details và data
+                        return handlePayPalSuccess(details, data);
                       });
+                    }}
+                    onCancel={() => {
+                      handlePayPalCancel();
                     }}
                   />
                 </PayPalScriptProvider>
