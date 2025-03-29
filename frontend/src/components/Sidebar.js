@@ -16,23 +16,23 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/admin/employees" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <FaUsers className="nav-icon" />
-          <span>Quản lý nhân viên</span>
+          <span>Nhân viên</span>
         </NavLink>
         <NavLink to="/admin/services" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <FaConciergeBell className="nav-icon" />
-          <span>Quản lý dịch vụ</span>
+          <span>Dịch vụ</span>
         </NavLink>
         <NavLink to="/admin/vouchers" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <FaTicketAlt className="nav-icon" />
-          <span>Quản lý voucher</span>
+          <span>Voucher</span>
         </NavLink>
         <NavLink to="/admin/room-reports" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <FaBed className="nav-icon" />
-          <span>Báo cáo phòng</span>
+          <span>Phòng</span>
         </NavLink>
         <NavLink to="/admin/revenue" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           <FaChartBar className="nav-icon" />
-          <span>Quản lý doanh thu</span>
+          <span>Doanh thu</span>
         </NavLink>
       </nav>
     </div>
