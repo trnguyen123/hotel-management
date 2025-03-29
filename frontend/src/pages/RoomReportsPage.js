@@ -15,6 +15,10 @@ const RoomReportsPage = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [searchTermRooms, setSearchTermRooms] = useState('');
   const [searchTermReports, setSearchTermReports] = useState('');
+  // Thêm state cho phân trang
+  const [currentPageRooms, setCurrentPageRooms] = useState(1);
+  const [currentPageReports, setCurrentPageReports] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchReports();
@@ -144,6 +148,21 @@ const RoomReportsPage = () => {
     (report.report_content?.toLowerCase() || '').includes(searchTermReports.toLowerCase())
   );
 
+  // Phân trang cho Rooms
+  const indexOfLastRoom = currentPageRooms * itemsPerPage;
+  const indexOfFirstRoom = indexOfLastRoom - itemsPerPage;
+  const currentRooms = filteredRooms.slice(indexOfFirstRoom, indexOfLastRoom);
+  const totalPagesRooms = Math.ceil(filteredRooms.length / itemsPerPage);
+
+  // Phân trang cho Reports
+  const indexOfLastReport = currentPageReports * itemsPerPage;
+  const indexOfFirstReport = indexOfLastReport - itemsPerPage;
+  const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport);
+  const totalPagesReports = Math.ceil(filteredReports.length / itemsPerPage);
+
+  const handlePageChangeRooms = (pageNumber) => setCurrentPageRooms(pageNumber);
+  const handlePageChangeReports = (pageNumber) => setCurrentPageReports(pageNumber);
+
   return (
     <div className="management-page">
       <div className="page-header">
@@ -183,8 +202,8 @@ const RoomReportsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredRooms.length > 0 ? (
-                filteredRooms.map(room => (
+              {currentRooms.length > 0 ? (
+                currentRooms.map(room => (
                   <tr key={room.room_id}>
                     <td>{room.room_id}</td>
                     <td>{room.room_number}</td>
@@ -208,6 +227,31 @@ const RoomReportsPage = () => {
               )}
             </tbody>
           </table>
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChangeRooms(currentPageRooms - 1)}
+              disabled={currentPageRooms === 1}
+              className="pagination-button"
+            >
+              Trước
+            </button>
+            {Array.from({ length: totalPagesRooms }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChangeRooms(page)}
+                className={`pagination-button ${currentPageRooms === page ? 'active' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChangeRooms(currentPageRooms + 1)}
+              disabled={currentPageRooms === totalPagesRooms}
+              className="pagination-button"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </div>
 
@@ -239,8 +283,8 @@ const RoomReportsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredReports.length > 0 ? (
-                filteredReports.map(report => (
+              {currentReports.length > 0 ? (
+                currentReports.map(report => (
                   <tr key={report.report_id}>
                     <td>{report.report_id}</td>
                     <td>{report.room_number}</td>
@@ -255,6 +299,31 @@ const RoomReportsPage = () => {
               )}
             </tbody>
           </table>
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChangeReports(currentPageReports - 1)}
+              disabled={currentPageReports === 1}
+              className="pagination-button"
+            >
+              Trước
+            </button>
+            {Array.from({ length: totalPagesReports }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChangeReports(page)}
+                className={`pagination-button ${currentPageReports === page ? 'active' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChangeReports(currentPageReports + 1)}
+              disabled={currentPageReports === totalPagesReports}
+              className="pagination-button"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </div>
 

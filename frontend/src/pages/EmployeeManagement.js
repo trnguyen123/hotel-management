@@ -15,6 +15,9 @@ const EmployeeManagement = () => {
   });
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const employeesPerPage = 10; // Số nhân viên mỗi trang
 
   useEffect(() => {
     fetchEmployees();
@@ -118,7 +121,7 @@ const EmployeeManagement = () => {
           setEmployees(updatedEmployees);
           window.dispatchEvent(new Event('employeeUpdated'));
           setShowModal(false);
-          window.location.reload(); // Refresh trang sau khi cập nhật
+          window.location.reload();
         } else {
           const errorData = await response.json();
           console.error('Lỗi khi cập nhật nhân viên:', errorData);
@@ -146,7 +149,7 @@ const EmployeeManagement = () => {
           setEmployees(updatedEmployees);
           window.dispatchEvent(new Event('employeeUpdated'));
           setShowModal(false);
-          window.location.reload(); // Refresh trang sau khi thêm mới
+          window.location.reload();
         } else {
           const errorData = await response.json();
           console.error('Lỗi khi thêm nhân viên:', errorData);
@@ -170,6 +173,17 @@ const EmployeeManagement = () => {
     (employee.role?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (employee.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  // Tính toán phân trang
+  const indexOfLastEmployee = currentPage * employeesPerPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
+  const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee);
+  const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
+
+  // Hàm xử lý chuyển trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <div className="management-page">
@@ -208,7 +222,7 @@ const EmployeeManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredEmployees.map(employee => (
+              {currentEmployees.map(employee => (
                 <tr key={employee.employee_id}>
                   <td>{employee.employee_id}</td>
                   <td>{employee.full_name}</td>
@@ -228,6 +242,33 @@ const EmployeeManagement = () => {
               ))}
             </tbody>
           </table>
+
+          {/* Phân trang */}
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              Trước
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </div>
 

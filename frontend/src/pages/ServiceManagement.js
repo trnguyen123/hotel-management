@@ -14,7 +14,9 @@ const ServiceManagement = () => {
   });
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   useEffect(() => {
     fetchServices();
   }, []);
@@ -167,6 +169,13 @@ const ServiceManagement = () => {
     (service.service_name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
+  // Phân trang
+  const indexOfLastService = currentPage * itemsPerPage;
+  const indexOfFirstService = indexOfLastService - itemsPerPage;
+  const currentServices = filteredServices.slice(indexOfFirstService, indexOfLastService);
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
   return (
     <div className="management-page">
       <div className="page-header">
@@ -222,6 +231,31 @@ const ServiceManagement = () => {
               ))}
             </tbody>
           </table>
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              Trước
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </div>
 

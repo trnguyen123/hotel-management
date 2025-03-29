@@ -14,6 +14,9 @@ const VoucherManagement = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredVouchers, setFilteredVouchers] = useState([]);
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchVouchers();
@@ -74,11 +77,10 @@ const VoucherManagement = () => {
   };
 
   const handleEditVoucher = (voucher) => {
-    // Chuyển đổi ngày từ định dạng ISO sang YYYY-MM-DD, cộng thêm 1 ngày để khớp với database
     const startDate = new Date(voucher.start_date);
-    startDate.setUTCDate(startDate.getUTCDate() + 1); // Cộng 1 ngày
+    startDate.setUTCDate(startDate.getUTCDate() + 1);
     const expirationDate = new Date(voucher.expiration_date);
-    expirationDate.setUTCDate(expirationDate.getUTCDate() + 1); // Cộng 1 ngày
+    expirationDate.setUTCDate(expirationDate.getUTCDate() + 1);
 
     const formatDateToString = (date) => {
       const year = date.getUTCFullYear();
@@ -122,11 +124,8 @@ const VoucherManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Chuẩn hóa ngày trước khi gửi lên server, không cần trừ 1 ngày
       const formatDateForServer = (dateString) => {
-        // Tách chuỗi YYYY-MM-DD để tránh lệch múi giờ
         const [year, month, day] = dateString.split('-');
-        // Trả về định dạng YYYY-MM-DD
         return `${year}-${month}-${day}`;
       };
 
@@ -184,15 +183,22 @@ const VoucherManagement = () => {
     setCurrentVoucher({ ...currentVoucher, [name]: value });
   };
 
-  // Hàm định dạng ngày để hiển thị trong bảng, cộng 1 ngày để khớp với database
   const formatDateForDisplay = (dateString) => {
     const date = new Date(dateString);
-    date.setUTCDate(date.getUTCDate() + 1); // Cộng 1 ngày
+    date.setUTCDate(date.getUTCDate() + 1);
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-    return `${day}/${month}/${year}`; // Định dạng DD/MM/YYYY
+    return `${day}/${month}/${year}`;
   };
+
+  // Phân trang
+  const indexOfLastVoucher = currentPage * itemsPerPage;
+  const indexOfFirstVoucher = indexOfLastVoucher - itemsPerPage;
+  const currentVouchers = filteredVouchers.slice(indexOfFirstVoucher, indexOfLastVoucher);
+  const totalPages = Math.ceil(filteredVouchers.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="management-page">
@@ -239,10 +245,10 @@ const VoucherManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredVouchers.length > 0 ? (
-                filteredVouchers.map((voucher, index) => (
+              {currentVouchers.length > 0 ? (
+                currentVouchers.map((voucher, index) => (
                   <tr key={voucher.voucher_code}>
-                    <td>{index + 1}</td>
+                    <td>{index + 1 + (currentPage - 1) * itemsPerPage}</td>
                     <td>{voucher.voucher_code}</td>
                     <td>{voucher.discount_percentage}%</td>
                     <td>{formatDateForDisplay(voucher.start_date)}</td>
@@ -264,6 +270,31 @@ const VoucherManagement = () => {
               )}
             </tbody>
           </table>
+          <div className="pagination">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              Trước
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              Sau
+            </button>
+          </div>
         </div>
       </div>
 

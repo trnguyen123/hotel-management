@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { FaChartBar, FaUsers, FaTicketAlt, FaBook } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom'; // Thêm useNavigate
+import { useNavigate } from 'react-router-dom';
 import '../Style/Management.css';
 
 const RevenueManagement = () => {
-  const navigate = useNavigate(); // Thêm hook để điều hướng
+  const navigate = useNavigate();
   const [reportType, setReportType] = useState('bookings');
   const [period, setPeriod] = useState('month');
   const [date, setDate] = useState('2025-03');
   const [bookingData, setBookingData] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const bookingsPerPage = 10; // Số booking mỗi trang
 
   const EXCHANGE_RATE = 25000;
 
@@ -58,15 +61,23 @@ const RevenueManagement = () => {
   };
 
   const filteredBookings = filterDataByPeriod(bookingData);
-
-  // Tính tổng doanh thu
   const totalRevenue = filteredBookings.reduce((sum, b) => 
     sum + convertToVND(b.total_price, b.payment_method), 0
   );
 
-  // Hàm điều hướng về Dashboard và truyền tổng doanh thu
+  // Tính toán phân trang
+  const indexOfLastBooking = currentPage * bookingsPerPage;
+  const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+  const currentBookings = filteredBookings.slice(indexOfFirstBooking, indexOfLastBooking);
+  const totalPages = Math.ceil(filteredBookings.length / bookingsPerPage);
+
   const goToDashboard = () => {
     navigate('/admin/dashboard', { state: { monthlyRevenue: totalRevenue } });
+  };
+
+  // Hàm xử lý chuyển trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   return (
@@ -94,66 +105,95 @@ const RevenueManagement = () => {
             loading ? (
               <p>Đang tải dữ liệu...</p>
             ) : (
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên khách hàng</th>
-                    <th>Số phòng</th>
-                    <th>Ngày đặt</th>
-                    <th>Ngày nhận</th>
-                    <th>Ngày trả</th>
-                    <th>Trạng thái</th>
-                    <th>Tổng giá</th>
-                    <th>Thanh toán</th>
-                    <th>Phí hủy</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredBookings.map((booking) => {
-                    const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
-                    const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
-                    const cancellationFee = Number(booking.cancellation_fee);
+              <>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tên khách hàng</th>
+                      <th>Số phòng</th>
+                      <th>Ngày đặt</th>
+                      <th>Ngày nhận</th>
+                      <th>Ngày trả</th>
+                      <th>Trạng thái</th>
+                      <th>Tổng giá</th>
+                      <th>Thanh toán</th>
+                      <th>Phí hủy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentBookings.map((booking) => {
+                      const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
+                      const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
+                      const cancellationFee = Number(booking.cancellation_fee);
 
-                    return (
-                      <tr key={booking.booking_id}>
-                        <td>{booking.booking_id}</td>
-                        <td>{booking.full_name}</td>
-                        <td>{booking.room_number}</td>
-                        <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
-                        <td>{new Date(booking.check_in_date).toLocaleDateString('vi-VN')}</td>
-                        <td>{new Date(booking.check_out_date).toLocaleDateString('vi-VN')}</td>
-                        <td>{booking.status}</td>
-                        <td className="text-right">
-                          {isVnd
-                            ? `${totalPrice.toLocaleString()} VND`
-                            : `${totalPrice.toLocaleString()} USD`}
-                        </td>
-                        <td>{booking.payment_status}</td>
-                        <td className="text-right">
-                          {isVnd
-                            ? `${cancellationFee.toLocaleString()} VND`
-                            : `${cancellationFee.toLocaleString()} USD`}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="summary-row">
-                    <td colSpan="7"><strong>Tổng</strong></td>
-                    <td className="text-right">
-                      <strong>{totalRevenue.toLocaleString()} VND</strong>
-                    </td>
-                    <td></td>
-                    <td className="text-right">
-                      <strong>
-                        {filteredBookings
-                          .reduce((sum, b) => sum + convertToVND(b.cancellation_fee, b.payment_method), 0)
-                          .toLocaleString()} VND
-                      </strong>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      return (
+                        <tr key={booking.booking_id}>
+                          <td>{booking.booking_id}</td>
+                          <td>{booking.full_name}</td>
+                          <td>{booking.room_number}</td>
+                          <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+                          <td>{new Date(booking.check_in_date).toLocaleDateString('vi-VN')}</td>
+                          <td>{new Date(booking.check_out_date).toLocaleDateString('vi-VN')}</td>
+                          <td>{booking.status}</td>
+                          <td className="text-right">
+                            {isVnd
+                              ? `${totalPrice.toLocaleString()} VND`
+                              : `${totalPrice.toLocaleString()} USD`}
+                          </td>
+                          <td>{booking.payment_status}</td>
+                          <td className="text-right">
+                            {isVnd
+                              ? `${cancellationFee.toLocaleString()} VND`
+                              : `${cancellationFee.toLocaleString()} USD`}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    <tr className="summary-row">
+                      <td colSpan="7"><strong>Tổng</strong></td>
+                      <td className="text-right">
+                        <strong>{totalRevenue.toLocaleString()} VND</strong>
+                      </td>
+                      <td></td>
+                      <td className="text-right">
+                        <strong>
+                          {filteredBookings
+                            .reduce((sum, b) => sum + convertToVND(b.cancellation_fee, b.payment_method), 0)
+                            .toLocaleString()} VND
+                        </strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Phân trang */}
+                <div className="pagination">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="pagination-button"
+                  >
+                    Trước
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="pagination-button"
+                  >
+                    Sau
+                  </button>
+                </div>
+              </>
             )
           )}
         </div>
