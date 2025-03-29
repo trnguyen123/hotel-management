@@ -203,7 +203,7 @@ const ServiceManagement = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th>
                 <th>Tên dịch vụ</th>
                 <th>Giá (VND)</th>
                 <th>Đơn vị</th>
@@ -212,9 +212,9 @@ const ServiceManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredServices.map(service => (
+              {filteredServices.map((service,index) => (
                 <tr key={service.service_id}>
-                  <td>{service.service_id}</td>
+                  <td>{indexOfFirstService + index + 1}</td>
                   <td>{service.service_name}</td>
                   <td>{parseInt(service.price).toLocaleString()}</td>
                   <td>{service.unit}</td>

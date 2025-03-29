@@ -193,7 +193,7 @@ const RoomReportsPage = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th> {/* Thay ID bằng STT */}
                 <th>Số Phòng</th>
                 <th>Loại Phòng</th>
                 <th>Giá</th>
@@ -203,9 +203,9 @@ const RoomReportsPage = () => {
             </thead>
             <tbody>
               {currentRooms.length > 0 ? (
-                currentRooms.map(room => (
+                currentRooms.map((room, index) => (
                   <tr key={room.room_id}>
-                    <td>{room.room_id}</td>
+                    <td>{indexOfFirstRoom + index + 1}</td> {/* STT thay vì room_id */}
                     <td>{room.room_number}</td>
                     <td>{room.room_type}</td>
                     <td>{room.price}</td>
@@ -276,7 +276,7 @@ const RoomReportsPage = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th>                     
                 <th>Số Phòng</th>
                 <th>Ngày Giờ</th>
                 <th>Nội Dung Báo Cáo</th>
@@ -284,9 +284,9 @@ const RoomReportsPage = () => {
             </thead>
             <tbody>
               {currentReports.length > 0 ? (
-                currentReports.map(report => (
+                currentReports.map((report, index) => (
                   <tr key={report.report_id}>
-                    <td>{report.report_id}</td>
+                    <td>{indexOfFirstReport + index + 1}</td>
                     <td>{report.room_number}</td>
                     <td>{report.generated_at.toLocaleString('vi-VN')}</td>
                     <td>{report.report_content}</td>

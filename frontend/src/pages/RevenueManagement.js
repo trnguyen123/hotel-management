@@ -109,7 +109,7 @@ const RevenueManagement = () => {
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>ID</th>
+                      <th>STT</th>                     
                       <th>Tên khách hàng</th>
                       <th>Số phòng</th>
                       <th>Ngày đặt</th>
@@ -122,14 +122,14 @@ const RevenueManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentBookings.map((booking) => {
+                    {currentBookings.map((booking,index) => {
                       const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
                       const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
                       const cancellationFee = Number(booking.cancellation_fee);
 
                       return (
                         <tr key={booking.booking_id}>
-                          <td>{booking.booking_id}</td>
+                          <td>{indexOfFirstBooking + index + 1}</td> 
                           <td>{booking.full_name}</td>
                           <td>{booking.room_number}</td>
                           <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>

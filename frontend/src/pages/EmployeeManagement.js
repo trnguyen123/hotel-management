@@ -212,7 +212,7 @@ const EmployeeManagement = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>STT</th>                     
                 <th>Tên</th>
                 <th>Chức vụ</th>
                 <th>Số điện thoại</th>
@@ -222,9 +222,9 @@ const EmployeeManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {currentEmployees.map(employee => (
+              {currentEmployees.map((employee, index) => (
                 <tr key={employee.employee_id}>
-                  <td>{employee.employee_id}</td>
+                  <td>{indexOfFirstEmployee + index + 1}</td>
                   <td>{employee.full_name}</td>
                   <td>{employee.role}</td>
                   <td>{employee.phone_number}</td>
