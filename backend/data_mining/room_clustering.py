@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.cluster import KMeans
 import json
 from decimal import Decimal
-from data_loader import get_booking_data
+from room_data_loader import get_booking_data
 
 def perform_clustering():
     # Lấy dữ liệu booking
@@ -24,7 +24,7 @@ def perform_clustering():
     result = df.to_dict(orient='records')
 
     # Lưu vào file JSON
-    with open("backend/data_mining/cluster_result.json", "w", encoding="utf-8") as f:
+    with open("cluster_result.json", "w", encoding="utf-8") as f:
         json.dump(result, f, indent=4)
 
     print("✅ Phân cụm hoàn tất! Kết quả đã lưu vào cluster_result.json.")

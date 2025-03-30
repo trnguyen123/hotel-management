@@ -1,0 +1,14 @@
+[
+    {
+        "payment_method": "cash",
+        "num_transactions": 23,
+        "total_revenue": 70696000.0,
+        "cluster": 0
+    },
+    {
+        "payment_method": "paypal",
+        "num_transactions": 3,
+        "total_revenue": 511.48,
+        "cluster": 1
+    }
+]
