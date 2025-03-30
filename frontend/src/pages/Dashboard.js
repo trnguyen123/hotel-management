@@ -7,7 +7,6 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../Style/Dashboard.css';
 
-// Đăng ký các thành phần cần thiết cho Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
@@ -42,12 +41,12 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
-  const [clusterChartData, setClusterChartData] = useState(null); // Dữ liệu biểu đồ clustering
+  const [roomClusterData, setRoomClusterData] = useState(null);
+  const [paymentClusterData, setPaymentClusterData] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [bookingsData, setBookingsData] = useState([]);
 
-  // Hàm quy đổi sang VND
-  const EXCHANGE_RATE = 25000;
+  const EXCHANGE_RATE = 25000; // Tỷ giá: 1 USD = 25,000 VND
   const convertToVND = (amount, paymentMethod) => {
     const isVnd = ['vnpay', 'cash'].includes(paymentMethod?.toLowerCase());
     const value = Number(amount) || 0;
@@ -59,27 +58,24 @@ const Dashboard = () => {
       try {
         setLoading(true);
 
-        // Gọi API lấy số lượng nhân viên
         const employeesResponse = await fetch('http://localhost:5000/api/employee/count');
         const employeesData = await employeesResponse.json();
 
-        // Gọi API lấy số lượng dịch vụ
         const servicesResponse = await fetch('http://localhost:5000/api/service/count');
         const servicesData = await servicesResponse.json();
 
-        // Gọi API lấy số lượng voucher
         const vouchersResponse = await fetch('http://localhost:5000/api/voucher/count');
         const vouchersData = await vouchersResponse.json();
 
-        // Gọi API lấy danh sách bookings
         const bookingsResponse = await fetch('http://localhost:5000/api/booking/getAll');
         const bookings = await bookingsResponse.json();
 
-        // Gọi API lấy dữ liệu clustering
-        const clusteringResponse = await fetch('http://localhost:5000/api/clustering/clusters');
-        const clusteringData = await clusteringResponse.json();
+        const roomClusteringResponse = await fetch('http://localhost:5000/api/clustering/room_clusters');
+        const roomClusteringData = await roomClusteringResponse.json();
 
-        // Cập nhật stats
+        const paymentClusteringResponse = await fetch('http://localhost:5000/api/clustering/payment_clusters');
+        const paymentClusteringData = await paymentClusteringResponse.json();
+
         setStats(prevStats => {
           const newStats = [...prevStats];
           newStats[0].value = employeesData.count || 0;
@@ -88,14 +84,10 @@ const Dashboard = () => {
           return newStats;
         });
 
-        // Lưu dữ liệu bookings
         setBookingsData(bookings);
-
-        // Cập nhật biểu đồ doanh thu
         updateChartData(bookings);
-
-        // Cập nhật biểu đồ clustering
-        updateClusterChartData(clusteringData);
+        updateRoomClusterChartData(roomClusteringData);
+        updatePaymentClusterChartData(paymentClusteringData);
 
         setLoading(false);
       } catch (error) {
@@ -107,7 +99,7 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Hàm cập nhật dữ liệu biểu đồ doanh thu
+  // Hàm cập nhật biểu đồ doanh thu
   const updateChartData = (bookings, date = null) => {
     let labels = [];
     let data = [];
@@ -164,27 +156,59 @@ const Dashboard = () => {
     });
   };
 
-  // Hàm cập nhật dữ liệu biểu đồ clustering
-  const updateClusterChartData = (clusteringData) => {
-    const labels = clusteringData.map(item => `Phòng ${item.room_id}`);
-    const revenues = clusteringData.map(item => item.total_revenue / 1000000); // Quy đổi sang triệu VND
-    const clusters = clusteringData.map(item => item.cluster);
+  // Hàm cập nhật biểu đồ phân cụm phòng
+  const updateRoomClusterChartData = (roomClusteringData) => {
+    const labels = roomClusteringData.map(item => `Phòng ${item.room_id}`);
+    const revenues = roomClusteringData.map(item => item.total_revenue / 1000000);
+    const clusters = roomClusteringData.map(item => item.cluster);
 
-    // Màu sắc cho từng cụm
     const clusterColors = clusters.map(cluster => {
       switch (cluster) {
-        case 0: return 'rgba(255, 99, 132, 0.6)'; // Đỏ
-        case 1: return 'rgba(54, 162, 235, 0.6)'; // Xanh dương
-        case 2: return 'rgba(75, 192, 192, 0.6)'; // Xanh ngọc
-        default: return 'rgba(150, 150, 150, 0.6)'; // Xám
+        case 0: return 'rgba(255, 99, 132, 0.6)';
+        case 1: return 'rgba(54, 162, 235, 0.6)';
+        case 2: return 'rgba(75, 192, 192, 0.6)';
+        default: return 'rgba(150, 150, 150, 0.6)';
       }
     });
 
-    setClusterChartData({
+    setRoomClusterData({
       labels,
       datasets: [
         {
           label: 'Doanh thu theo phòng (triệu VND)',
+          data: revenues,
+          backgroundColor: clusterColors,
+          borderColor: clusterColors.map(color => color.replace('0.6', '1')),
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
+
+  // Hàm cập nhật biểu đồ phân cụm phương thức thanh toán
+  const updatePaymentClusterChartData = (paymentClusteringData) => {
+    const labels = paymentClusteringData.map(item => item.payment_method);
+    const revenues = paymentClusteringData.map(item => {
+      // Quy đổi từ USD sang VND nếu là paypal
+      const revenueInVND = convertToVND(item.total_revenue, item.payment_method);
+      return revenueInVND / 1000000; // Chuyển sang triệu VND
+    });
+    const clusters = paymentClusteringData.map(item => item.cluster);
+
+    const clusterColors = clusters.map(cluster => {
+      switch (cluster) {
+        case 0: return 'rgba(255, 99, 132, 0.6)';
+        case 1: return 'rgba(54, 162, 235, 0.6)';
+        case 2: return 'rgba(75, 192, 192, 0.6)';
+        default: return 'rgba(150, 150, 150, 0.6)';
+      }
+    });
+
+    setPaymentClusterData({
+      labels,
+      datasets: [
+        {
+          label: 'Doanh thu theo phương thức (triệu VND)',
           data: revenues,
           backgroundColor: clusterColors,
           borderColor: clusterColors.map(color => color.replace('0.6', '1')),
@@ -207,15 +231,11 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  // Cấu hình biểu đồ doanh thu
   const chartOptions = {
     responsive: true,
     plugins: {
       legend: { position: 'top' },
-      title: {
-        display: true,
-        text: 'Thống kê doanh thu theo ' + (selectedDate ? 'ngày' : 'tháng'),
-      },
+      title: { display: true, text: 'Thống kê doanh thu theo ' + (selectedDate ? 'ngày' : 'tháng') },
     },
     scales: {
       y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (triệu VND)' } },
@@ -223,19 +243,27 @@ const Dashboard = () => {
     },
   };
 
-  // Cấu hình biểu đồ clustering
-  const clusterChartOptions = {
+  const roomClusterChartOptions = {
     responsive: true,
     plugins: {
       legend: { position: 'top' },
-      title: {
-        display: true,
-        text: 'Doanh thu theo phòng và cụm',
-      },
+      title: { display: true, text: 'Phân cụm doanh thu theo phòng' },
     },
     scales: {
       y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (triệu VND)' } },
       x: { title: { display: true, text: 'Phòng' } },
+    },
+  };
+
+  const paymentClusterChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'Phân cụm doanh thu theo phương thức thanh toán' },
+    },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (triệu VND)' } },
+      x: { title: { display: true, text: 'Phương thức thanh toán' } },
     },
   };
 
@@ -282,9 +310,12 @@ const Dashboard = () => {
             {chartData && <Bar data={chartData} options={chartOptions} />}
           </div>
 
-          {/* Biểu đồ clustering */}
           <div className="chart-section" style={{ marginTop: '40px' }}>
-            {clusterChartData && <Bar data={clusterChartData} options={clusterChartOptions} />}
+            {roomClusterData && <Bar data={roomClusterData} options={roomClusterChartOptions} />}
+          </div>
+
+          <div className="chart-section" style={{ marginTop: '40px' }}>
+            {paymentClusterData && <Bar data={paymentClusterData} options={paymentClusterChartOptions} />}
           </div>
         </>
       )}
