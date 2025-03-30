@@ -18,6 +18,7 @@ const customerRoutes = require('./routes/customer');
 const employeeRoutes = require('./routes/employee');
 const paypalRoutes = require('./routes/paypal');
 const vnpayRoutes = require('./routes/vnpay');
+const clusteringRoutes = require('./routes/clustering');
 
 // Cấu hình CORS
 const corsOptions = {
@@ -58,7 +59,7 @@ app.use('/api/customer', customerRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/paypal', paypalRoutes);
 app.use('/api/vnpay', vnpayRoutes);
-
+app.use('/api/clustering', clusteringRoutes);
 // Khởi chạy server
 app.listen(port, () => {
   console.log(`Server đang chạy trên http://localhost:${port}`);

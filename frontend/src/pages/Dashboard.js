@@ -42,8 +42,9 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null); // State for selected date
-  const [bookingsData, setBookingsData] = useState([]); // Store bookings data for filtering
+  const [clusterChartData, setClusterChartData] = useState(null); // Dữ liệu biểu đồ clustering
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [bookingsData, setBookingsData] = useState([]);
 
   // Hàm quy đổi sang VND
   const EXCHANGE_RATE = 25000;
@@ -70,24 +71,31 @@ const Dashboard = () => {
         const vouchersResponse = await fetch('http://localhost:5000/api/voucher/count');
         const vouchersData = await vouchersResponse.json();
 
-        // Gọi API lấy danh sách bookings để tính tổng tiền
+        // Gọi API lấy danh sách bookings
         const bookingsResponse = await fetch('http://localhost:5000/api/booking/getAll');
         const bookings = await bookingsResponse.json();
 
-        // Lưu dữ liệu bookings để sử dụng cho việc lọc
-        setBookingsData(bookings);
+        // Gọi API lấy dữ liệu clustering
+        const clusteringResponse = await fetch('http://localhost:5000/api/clustering/clusters');
+        const clusteringData = await clusteringResponse.json();
 
         // Cập nhật stats
         setStats(prevStats => {
           const newStats = [...prevStats];
-          newStats[0].value = employeesData.count || 0; // Nhân viên
-          newStats[1].value = servicesData.count || 0;  // Dịch vụ
-          newStats[2].value = vouchersData.count || 0;  // Voucher
+          newStats[0].value = employeesData.count || 0;
+          newStats[1].value = servicesData.count || 0;
+          newStats[2].value = vouchersData.count || 0;
           return newStats;
         });
 
-        // Ban đầu hiển thị dữ liệu theo tháng (giống như trước)
+        // Lưu dữ liệu bookings
+        setBookingsData(bookings);
+
+        // Cập nhật biểu đồ doanh thu
         updateChartData(bookings);
+
+        // Cập nhật biểu đồ clustering
+        updateClusterChartData(clusteringData);
 
         setLoading(false);
       } catch (error) {
@@ -99,19 +107,18 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Hàm cập nhật dữ liệu biểu đồ (dựa trên booking_date)
+  // Hàm cập nhật dữ liệu biểu đồ doanh thu
   const updateChartData = (bookings, date = null) => {
     let labels = [];
     let data = [];
   
     if (date) {
-      // Chuyển ngày được chọn sang múi giờ UTC
       const utcDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
       const year = utcDate.getUTCFullYear();
-      const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0, cần +1
+      const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
       const day = String(utcDate.getUTCDate()).padStart(2, '0');
-      const selectedDateString = `${year}-${month}-${day}`; // Định dạng YYYY-MM-DD ở UTC
-  
+      const selectedDateString = `${year}-${month}-${day}`;
+
       const filteredBookings = bookings.filter(booking => {
         const bookingDateObj = new Date(booking.booking_date);
         const bookingYear = bookingDateObj.getUTCFullYear();
@@ -120,16 +127,14 @@ const Dashboard = () => {
         const bookingDate = `${bookingYear}-${bookingMonth}-${bookingDay}`;
         return bookingDate === selectedDateString;
       });
-  
-      // Tính doanh thu cho ngày được chọn
+
       const dailyRevenue = filteredBookings.reduce((total, booking) => {
         return total + convertToVND(booking.total_price, booking.payment_method);
       }, 0);
-  
+
       labels = [selectedDateString];
-      data = [dailyRevenue / 1000000]; // Quy đổi sang triệu VND
+      data = [dailyRevenue / 1000000];
     } else {
-      // Hiển thị dữ liệu theo tháng (giữ nguyên logic cũ)
       const revenueByMonth = {};
       bookings.forEach(booking => {
         const bookingDate = new Date(booking.booking_date);
@@ -140,11 +145,11 @@ const Dashboard = () => {
           revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + revenue;
         }
       });
-  
+
       labels = Object.keys(revenueByMonth).sort();
       data = labels.map(month => revenueByMonth[month] / 1000000);
     }
-  
+
     setChartData({
       labels,
       datasets: [
@@ -159,13 +164,42 @@ const Dashboard = () => {
     });
   };
 
-  // Xử lý khi người dùng chọn ngày
+  // Hàm cập nhật dữ liệu biểu đồ clustering
+  const updateClusterChartData = (clusteringData) => {
+    const labels = clusteringData.map(item => `Phòng ${item.room_id}`);
+    const revenues = clusteringData.map(item => item.total_revenue / 1000000); // Quy đổi sang triệu VND
+    const clusters = clusteringData.map(item => item.cluster);
+
+    // Màu sắc cho từng cụm
+    const clusterColors = clusters.map(cluster => {
+      switch (cluster) {
+        case 0: return 'rgba(255, 99, 132, 0.6)'; // Đỏ
+        case 1: return 'rgba(54, 162, 235, 0.6)'; // Xanh dương
+        case 2: return 'rgba(75, 192, 192, 0.6)'; // Xanh ngọc
+        default: return 'rgba(150, 150, 150, 0.6)'; // Xám
+      }
+    });
+
+    setClusterChartData({
+      labels,
+      datasets: [
+        {
+          label: 'Doanh thu theo phòng (triệu VND)',
+          data: revenues,
+          backgroundColor: clusterColors,
+          borderColor: clusterColors.map(color => color.replace('0.6', '1')),
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
     if (date) {
-      updateChartData(bookingsData, date); // Cập nhật biểu đồ theo ngày
+      updateChartData(bookingsData, date);
     } else {
-      updateChartData(bookingsData); // Quay lại hiển thị theo tháng nếu không chọn ngày
+      updateChartData(bookingsData);
     }
   };
 
@@ -173,38 +207,35 @@ const Dashboard = () => {
     navigate(path);
   };
 
-  // Cấu hình biểu đồ
+  // Cấu hình biểu đồ doanh thu
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          color: "#000", // Màu chữ đen cho legend
-          font: {
-            weight: "bold" // Làm đậm chữ
-          }
-        }
-      },
+      legend: { position: 'top' },
       title: {
         display: true,
         text: 'Thống kê doanh thu theo ' + (selectedDate ? 'ngày' : 'tháng'),
       },
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Doanh thu (triệu VND)',
-        },
+      y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (triệu VND)' } },
+      x: { title: { display: true, text: selectedDate ? 'Ngày' : 'Tháng' } },
+    },
+  };
+
+  // Cấu hình biểu đồ clustering
+  const clusterChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: {
+        display: true,
+        text: 'Doanh thu theo phòng và cụm',
       },
-      x: {
-        title: {
-          display: true,
-          text: selectedDate ? 'Ngày' : 'Tháng',
-        },
-      },
+    },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Doanh thu (triệu VND)' } },
+      x: { title: { display: true, text: 'Phòng' } },
     },
   };
 
@@ -235,7 +266,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          {/* Thanh tìm kiếm theo ngày */}
+
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
             <label>Chọn ngày để xem thống kê: </label>
             <DatePicker
@@ -243,12 +274,17 @@ const Dashboard = () => {
               onChange={handleDateChange}
               dateFormat="dd/MM/yyyy"
               placeholderText="Chọn ngày"
-              isClearable // Cho phép xóa ngày đã chọn
+              isClearable
             />
           </div>
-          {/* Biểu đồ doanh thu */}
+
           <div className="chart-section">
             {chartData && <Bar data={chartData} options={chartOptions} />}
+          </div>
+
+          {/* Biểu đồ clustering */}
+          <div className="chart-section" style={{ marginTop: '40px' }}>
+            {clusterChartData && <Bar data={clusterChartData} options={clusterChartOptions} />}
           </div>
         </>
       )}
