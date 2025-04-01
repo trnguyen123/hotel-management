@@ -165,27 +165,49 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  color: white; /* Đặt màu chữ mặc định là trắng cho tất cả nút */
-  transition: background-color 0.3s; /* Hiệu ứng chuyển màu khi hover */
+  color: white;
+  transition: background-color 0.3s;
 }
 
-/* Nút "Hủy bỏ" - Màu đỏ */
-.modal-footer button.cancel-button {
-  background-color: #ff0000; /* Màu đỏ */
+/* Style riêng cho từng button */
+.checkout-button {
+  background-color: #2196F3; /* Màu xanh dương */
 }
 
-/* Nút "Xác nhận đặt phòng" - Màu xanh lá */
-.modal-footer button.confirm-button {
-  background-color: #00cc00; /* Màu xanh lá đậm hơn một chút */
+.checkout-button:hover {
+  background-color: #1976D2; /* Xanh dương đậm hơn khi hover */
 }
 
-/* Hiệu ứng hover */
-.modal-footer button.cancel-button:hover {
-  background-color: #cc0000; /* Đỏ đậm hơn khi hover */
+.cancel-booking-button {
+  background-color: #F44336; /* Màu đỏ */
 }
 
-.modal-footer button.confirm-button:hover {
-  background-color: #009900; /* Xanh lá đậm hơn khi hover */
+.cancel-booking-button:hover {
+  background-color: #D32F2F; /* Đỏ đậm hơn khi hover */
+}
+
+.checkin-button {
+  background-color: #4CAF50; /* Màu xanh lá */
+}
+
+.checkin-button:hover {
+  background-color: #388E3C; /* Xanh lá đậm hơn khi hover */
+}
+
+.cancel-reservation-button {
+  background-color: #9E9E9E; /* Màu xám */
+}
+
+.cancel-reservation-button:hover {
+  background-color: #757575; /* Xám đậm hơn khi hover */
+}
+
+.confirm-reservation-button {
+  background-color: #FFA500; /* Màu cam */
+}
+
+.confirm-reservation-button:hover {
+  background-color: #d77410; /* Cam đậm hơn khi hover */
 }
 
 .payment-section {

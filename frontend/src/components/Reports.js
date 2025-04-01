@@ -79,10 +79,18 @@ const ReportsPage = () => {
                 rows="4"
               />
             </div>
-            <button onClick={handleCreateReport} disabled={isLoading}>
+            <button
+              className="save-report-button"
+              onClick={handleCreateReport}
+              disabled={isLoading}
+            >
               {isLoading ? "Đang lưu..." : "Lưu Báo Cáo"}
             </button>
-            <button onClick={handleCloseReportModal} disabled={isLoading}>
+            <button
+              className="cancel-report-button"
+              onClick={handleCloseReportModal}
+              disabled={isLoading}
+            >
               Hủy
             </button>
           </div>

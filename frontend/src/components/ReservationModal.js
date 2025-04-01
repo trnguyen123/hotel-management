@@ -85,9 +85,9 @@ const BookingDetailsModal = ({ booking, onClose }) => {
           </div>
         </div>
         <div className="modal-footer">
-          <button type="button" onClick={handleCheckout}>Trả phòng</button>
-          <button type="button" onClick={handleCancel}>Hủy phòng</button>
-          <button type="button" onClick={handleCheckin}>Nhận phòng</button>
+          <button type="button" className="checkout-button" onClick={handleCheckout}>Trả Phòng</button>
+          <button type="button" className="cancel-booking-button" onClick={handleCancel}>Hủy Đặt Phòng</button>
+          <button type="button" className="checkin-button" onClick={handleCheckin}>Nhận Phòng</button>
         </div>
       </div>
     </div>
@@ -301,9 +301,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
         alert("Đặt phòng thành công!");
         onClose();
         window.location.reload();
-      } else {
-        alert("Không thể tạo đặt phòng!");
-      }
+      } 
     } catch (error) {
       console.error("Error creating booking:", error);
       alert("Có lỗi xảy ra khi tạo đặt phòng!");
@@ -504,9 +502,9 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="cancel-button" onClick={onClose}>
-                Huỷ bỏ
-              </button>
+            <button type="button" className="cancel-reservation-button" onClick={onClose}>
+              Hủy Bỏ
+            </button>
               {formData.payment_method === "paypal" ? (
                 <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID }}>
                   <PayPalButtons
@@ -552,7 +550,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                   />
                 </PayPalScriptProvider>
               ) : (
-                <button type="submit" className="confirm-button">
+                <button type="submit" className="confirm-reservation-button">
                   Xác nhận đặt phòng
                 </button>
               )}
