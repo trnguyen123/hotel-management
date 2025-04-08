@@ -26,7 +26,7 @@ def perform_payment_clustering():
     with open("payment_cluster_result.json", "w", encoding="utf-8") as f:
         json.dump(result, f, indent=4)
 
-    print("✅ Phân cụm phương thức thanh toán hoàn tất! Kết quả đã lưu vào payment_cluster_result.json.")
+    print("Phân cụm phương thức thanh toán hoàn tất! Kết quả đã lưu vào payment_cluster_result.json.")
     return result
 
 if __name__ == "__main__":

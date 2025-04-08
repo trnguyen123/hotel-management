@@ -27,7 +27,7 @@ def perform_clustering():
     with open("cluster_result.json", "w", encoding="utf-8") as f:
         json.dump(result, f, indent=4)
 
-    print("✅ Phân cụm hoàn tất! Kết quả đã lưu vào cluster_result.json.")
+    print("Phân cụm hoàn tất! Kết quả đã lưu vào cluster_result.json.")
 
 if __name__ == "__main__":
     perform_clustering()

@@ -1,79 +1,79 @@
 [
     {
         "room_id": 1,
-        "num_bookings": 7,
-        "total_revenue": 21623130.57,
-        "avg_stay_duration": 2.8571,
-        "cluster": 1
+        "num_bookings": 8,
+        "total_revenue": 23828130.57,
+        "avg_stay_duration": 2.75,
+        "cluster": 2
     },
     {
         "room_id": 2,
         "num_bookings": 4,
         "total_revenue": 15263000.0,
         "avg_stay_duration": 2.5,
-        "cluster": 1
+        "cluster": 0
     },
     {
         "room_id": 3,
         "num_bookings": 2,
         "total_revenue": 3925000.0,
         "avg_stay_duration": 1.5,
-        "cluster": 0
+        "cluster": 1
     },
     {
         "room_id": 4,
         "num_bookings": 3,
         "total_revenue": 6350172.77,
         "avg_stay_duration": 2.0,
-        "cluster": 2
+        "cluster": 1
     },
     {
         "room_id": 5,
-        "num_bookings": 2,
-        "total_revenue": 6200000.0,
-        "avg_stay_duration": 2.0,
-        "cluster": 2
+        "num_bookings": 3,
+        "total_revenue": 9548000.0,
+        "avg_stay_duration": 2.3333,
+        "cluster": 0
     },
     {
         "room_id": 6,
         "num_bookings": 3,
         "total_revenue": 5805208.14,
         "avg_stay_duration": 2.0,
-        "cluster": 2
+        "cluster": 1
     },
     {
         "room_id": 7,
         "num_bookings": 1,
         "total_revenue": 1530000.0,
         "avg_stay_duration": 2.0,
-        "cluster": 0
+        "cluster": 1
     },
     {
         "room_id": 8,
         "num_bookings": 1,
         "total_revenue": 3900000.0,
         "avg_stay_duration": 2.0,
-        "cluster": 0
+        "cluster": 1
     },
     {
         "room_id": 10,
         "num_bookings": 1,
         "total_revenue": 1700000.0,
         "avg_stay_duration": 1.0,
-        "cluster": 0
+        "cluster": 1
     },
     {
         "room_id": 11,
         "num_bookings": 1,
         "total_revenue": 2100000.0,
         "avg_stay_duration": 2.0,
-        "cluster": 0
+        "cluster": 1
     },
     {
         "room_id": 15,
         "num_bookings": 1,
         "total_revenue": 2300000.0,
         "avg_stay_duration": 1.0,
-        "cluster": 0
+        "cluster": 1
     }
 ]
