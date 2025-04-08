@@ -16,14 +16,13 @@ import ServiceManagement from "./pages/ServiceManagement";
 import VoucherManagement from "./pages/VoucherManagement";
 import RoomReportsPage from "./pages/RoomReportsPage";
 import RevenueManagement from "./pages/RevenueManagement";
-import PaymentSuccess from "./components/PaymentSuccess"; // Thêm import PaymentSuccess
+import PaymentSuccess from "./components/PaymentSuccess";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("Calendar");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Kiểm tra localStorage khi app khởi động
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -32,19 +31,16 @@ function App() {
     }
   }, []);
 
-  // Hàm để thay đổi trang
   const changePage = (pageName) => {
     setCurrentPage(pageName);
   };
 
-  // Hàm xử lý đăng nhập
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Hàm xử lý đăng xuất
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUser(null);
@@ -63,6 +59,7 @@ function App() {
           {user && user.role === "manager" && <Sidebar />}
           <div className="content">
             <Routes>
+              {/* Vai trò Lễ tân */}
               {user && user.role === "receptionist" && (
                 <>
                   <Route
@@ -78,12 +75,16 @@ function App() {
                   <Route path="/service" element={<Service />} />
                 </>
               )}
-              {user && user.role === "service_staff" && (
+
+              {/* Vai trò Nhân viên Dịch vụ */}
+              {user && user.role === "service staff" && (
                 <>
                   <Route path="/service" element={<Service />} />
                   <Route path="/reports" element={<Reports />} />
                 </>
               )}
+
+              {/* Vai trò Quản lý */}
               {user && user.role === "manager" && (
                 <>
                   <Route
@@ -107,22 +108,10 @@ function App() {
                 </>
               )}
 
-              {/* Routes công khai */}
-              <Route
-                path="/calendar"
-                element={
-                  <BookingProvider>
-                    <CalendarProvider>
-                      <Rooms />
-                    </CalendarProvider>
-                  </BookingProvider>
-                }
-              />
-              <Route path="/service" element={<Service />} />
-              <Route path="/reports" element={<Reports />} />
-
-              {/* Route cho PaymentSuccess */}
+              {/* Tuyến đường Công khai cho Payment Success */}
               <Route path="/payment-success" element={<PaymentSuccess />} />
+
+              <Route path="*" element={<div>Bạn không có quyền truy cập trang này</div>} />
             </Routes>
           </div>
         </div>

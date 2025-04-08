@@ -31,15 +31,16 @@ CREATE TABLE `bookings` (
   `booking_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `status` enum('booked','cancelled','checked_in','checked_out') DEFAULT 'booked',
   `total_price` decimal(10,2) DEFAULT NULL,
-  `payment_status` enum('paid','unpaid','pending') DEFAULT 'unpaid',
+  `payment_status` enum('paid','unpaid','pending','cancelled') DEFAULT 'unpaid',
   `cancellation_fee` decimal(10,2) DEFAULT '0.00',
   `cancellation_date` datetime DEFAULT NULL,
+  `payment_method` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`booking_id`),
   KEY `customer_id` (`customer_id`),
   KEY `room_id` (`room_id`),
   CONSTRAINT `bookings_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
   CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,7 +49,7 @@ CREATE TABLE `bookings` (
 
 LOCK TABLES `bookings` WRITE;
 /*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
-INSERT INTO `bookings` VALUES (1,1,1,'2024-02-01 14:00:00','2024-02-03 12:00:00','2024-01-30 03:00:00','checked_out',NULL,'paid',0.00,NULL),(2,2,2,'2024-02-05 14:00:00','2024-02-07 12:00:00','2024-02-04 02:30:00','checked_out',NULL,'unpaid',0.00,NULL),(3,3,3,'2024-02-10 14:00:00','2024-02-12 12:00:00','2024-02-08 08:45:00','cancelled',NULL,'unpaid',200000.00,'2024-02-09 10:00:00'),(4,4,4,'2024-02-15 14:00:00','2024-02-17 12:00:00','2024-02-13 04:20:00','checked_out',NULL,'paid',0.00,NULL),(5,5,5,'2024-02-20 14:00:00','2024-02-22 12:00:00','2024-02-18 01:50:00','checked_out',NULL,'pending',0.00,NULL),(6,1,1,'2025-03-05 00:00:00','2025-03-10 00:00:00','2025-03-02 07:21:29','cancelled',5000000.00,'pending',0.00,'2025-03-02 17:51:17'),(7,1,1,'2025-03-05 00:00:00','2025-03-10 00:00:00','2025-03-02 07:28:46','booked',5000000.00,'pending',0.00,NULL),(16,6,4,'2025-03-03 00:00:00','2025-03-04 00:00:00','2025-03-03 07:51:05','booked',1350000.00,'pending',0.00,NULL),(17,6,9,'2025-03-06 00:00:00','2025-03-09 00:00:00','2025-03-04 05:34:04','checked_in',1500000.00,'pending',0.00,NULL),(18,7,7,'2025-03-07 00:00:00','2025-03-09 00:00:00','2025-03-04 05:36:21','booked',1530000.00,'pending',0.00,NULL),(19,7,15,'2025-03-06 00:00:00','2025-03-07 00:00:00','2025-03-04 05:39:21','booked',2300000.00,'pending',0.00,NULL);
+INSERT INTO `bookings` VALUES (1,1,1,'2025-02-01 14:00:00','2025-02-03 12:00:00','2025-01-30 03:00:00','checked_out',5000000.00,'paid',0.00,NULL,'cash'),(2,2,2,'2025-02-05 14:00:00','2025-02-07 12:00:00','2025-02-04 02:30:00','checked_out',5000000.00,'paid',0.00,NULL,'cash'),(3,3,3,'2025-02-10 14:00:00','2025-02-12 12:00:00','2025-02-08 08:45:00','cancelled',5000000.00,'unpaid',200000.00,'2025-02-09 10:00:00','cash'),(4,4,4,'2025-02-15 14:00:00','2025-02-17 12:00:00','2025-02-13 04:20:00','checked_out',5000000.00,'paid',0.00,NULL,'cash'),(5,5,5,'2025-02-20 14:00:00','2025-02-22 12:00:00','2025-02-18 01:50:00','checked_out',5000000.00,'paid',0.00,NULL,'cash'),(6,1,1,'2025-03-05 00:00:00','2025-03-10 00:00:00','2025-03-02 07:21:29','cancelled',5000000.00,'pending',0.00,'2025-03-02 17:51:17','cash'),(7,1,1,'2025-03-05 00:00:00','2025-03-10 00:00:00','2025-03-02 07:28:46','checked_out',5000000.00,'paid',0.00,NULL,'cash'),(16,6,4,'2025-03-03 00:00:00','2025-03-04 00:00:00','2025-03-03 07:51:05','checked_out',1350000.00,'paid',0.00,NULL,'cash'),(17,6,9,'2025-03-06 00:00:00','2025-03-09 00:00:00','2025-03-04 05:34:04','cancelled',1500000.00,'pending',750000.00,'2025-03-05 08:24:54','cash'),(18,7,7,'2025-03-07 00:00:00','2025-03-09 00:00:00','2025-03-04 05:36:21','checked_out',1530000.00,'paid',0.00,NULL,'cash'),(19,7,15,'2025-03-06 00:00:00','2025-03-07 00:00:00','2025-03-04 05:39:21','checked_out',2300000.00,'paid',0.00,NULL,'cash'),(20,8,10,'2025-03-04 00:00:00','2025-03-05 00:00:00','2025-03-04 06:16:36','checked_out',1700000.00,'paid',0.00,NULL,'cash'),(21,6,6,'2025-03-05 00:00:00','2025-03-06 00:00:00','2025-03-04 06:18:27','checked_out',1800000.00,'paid',0.00,NULL,'cash'),(22,6,11,'2025-03-07 00:00:00','2025-03-09 00:00:00','2025-03-04 06:52:50','checked_out',2100000.00,'paid',0.00,NULL,'cash'),(23,6,5,'2025-03-07 00:00:00','2025-03-09 00:00:00','2025-03-04 07:06:51','checked_out',1200000.00,'paid',0.00,NULL,'cash'),(24,6,5,'2025-03-15 00:00:00','2025-03-17 00:00:00','2025-03-05 01:29:19','cancelled',1260000.00,'pending',0.00,'2025-03-05 08:29:30','cash'),(25,6,3,'2025-03-10 00:00:00','2025-03-11 00:00:00','2025-03-06 08:21:18','checked_out',1540000.00,'paid',0.00,NULL,'cash'),(26,6,8,'2025-03-10 00:00:00','2025-03-12 00:00:00','2025-03-07 02:26:27','checked_out',3900000.00,'paid',0.00,NULL,'cash'),(27,6,1,'2025-03-10 00:00:00','2025-03-11 00:00:00','2025-03-10 06:48:18','cancelled',1350000.00,'pending',0.00,NULL,'cash'),(28,6,6,'2025-03-10 00:00:00','2025-03-12 00:00:00','2025-03-10 06:53:10','checked_out',4005000.00,'paid',0.00,NULL,'cash'),(29,6,7,'2025-03-10 00:00:00','2025-03-12 00:00:00','2025-03-10 06:56:29','cancelled',3375000.00,'pending',1687500.00,'2025-03-10 16:53:02','cash'),(30,6,2,'2025-03-10 00:00:00','2025-03-12 00:00:00','2025-03-10 06:57:23','checked_out',3105000.00,'paid',0.00,NULL,'cash'),(31,6,4,'2025-03-12 00:00:00','2025-03-15 00:00:00','2025-03-10 10:03:49','cancelled',4185000.00,'pending',2092500.00,'2025-03-12 22:52:47','cash'),(32,6,1,'2025-03-13 00:00:00','2025-03-15 00:00:00','2025-03-10 12:59:26','cancelled',2550000.00,'pending',1275000.00,'2025-03-12 15:02:19','cash'),(33,6,6,'2025-03-14 00:00:00','2025-03-15 00:00:00','2025-03-11 12:57:38','cancelled',1935000.00,'pending',967500.00,'2025-03-12 15:02:30','cash'),(34,6,7,'2025-03-13 00:00:00','2025-03-17 00:00:00','2025-03-11 13:01:25','cancelled',6800000.00,'pending',3400000.00,'2025-03-17 15:56:47','cash'),(35,6,11,'2025-03-12 00:00:00','2025-03-16 00:00:00','2025-03-11 17:24:21','cancelled',7605000.00,'pending',3802500.00,'2025-03-12 14:58:11','vnpay'),(36,6,2,'2025-03-14 00:00:00','2025-03-16 00:00:00','2025-03-12 08:01:13','cancelled',2475000.00,'pending',1237500.00,'2025-03-12 15:02:26','cash'),(37,6,10,'2025-03-14 00:00:00','2025-03-16 00:00:00','2025-03-12 08:01:56','cancelled',3375000.00,'pending',1687500.00,'2025-03-12 15:02:15','vnpay'),(38,6,1,'2025-03-14 00:00:00','2025-03-16 00:00:00','2025-03-12 08:03:04','cancelled',2587500.00,'pending',1293750.00,'2025-03-12 22:52:41','vnpay'),(40,9,2,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 14:55:38','cancelled',1500000.00,'pending',750000.00,'2025-03-12 22:52:45','vnpay'),(41,9,2,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 14:56:52','cancelled',1500000.00,'pending',750000.00,'2025-03-12 22:52:06','vnpay'),(42,7,3,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 15:19:01','cancelled',100.00,'pending',0.00,'2025-03-12 22:52:44','paypal'),(43,7,2,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 15:21:38','cancelled',100.00,'pending',0.00,'2025-03-12 22:52:43','paypal'),(44,7,5,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 15:24:09','cancelled',100.00,'pending',0.00,'2025-03-12 22:52:48','paypal'),(45,7,6,'2025-03-20 00:00:00','2025-03-25 00:00:00','2025-03-12 15:49:31','cancelled',100.00,'pending',0.00,'2025-03-17 15:58:30','paypal'),(46,8,1,'2025-03-15 00:00:00','2025-03-18 00:00:00','2025-03-14 02:48:33','checked_out',3330000.00,'paid',0.00,NULL,'cash'),(47,8,2,'2025-03-17 00:00:00','2025-03-19 00:00:00','2025-03-14 02:49:12','cancelled',2358000.00,'pending',0.00,'2025-03-14 09:49:55','cash'),(48,6,1,'2025-03-18 00:00:00','2025-03-19 00:00:00','2025-03-17 08:58:53','checked_out',1125000.00,'paid',0.00,NULL,'cash'),(49,8,2,'2025-03-18 00:00:00','2025-03-21 00:00:00','2025-03-17 09:28:39','checked_out',3438000.00,'paid',0.00,NULL,'cash'),(50,8,3,'2025-03-19 00:00:00','2025-03-21 00:00:00','2025-03-18 09:41:59','cancelled',2475000.00,'pending',1237500.00,'2025-03-18 16:43:52','cash'),(51,8,3,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 09:44:29','checked_out',2385000.00,'paid',0.00,NULL,'cash'),(52,8,4,'2025-03-19 00:00:00','2025-03-22 00:00:00','2025-03-18 09:56:11','checked_out',172.77,'paid',0.00,NULL,'paypal'),(53,8,6,'2025-03-20 00:00:00','2025-03-23 00:00:00','2025-03-18 09:57:49','checked_out',208.14,'paid',0.00,NULL,'paypal'),(54,8,11,'2025-03-20 00:00:00','2025-03-23 00:00:00','2025-03-18 10:09:04','cancelled',250.26,'pending',125.13,'2025-03-18 17:17:49','paypal'),(55,8,12,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:12:53','cancelled',149.18,'pending',74.59,'2025-03-18 17:17:46','paypal'),(56,8,11,'2025-03-20 00:00:00','2025-03-23 00:00:00','2025-03-18 10:18:45','cancelled',227.45,'pending',113.73,'2025-03-18 17:23:50','paypal'),(57,8,12,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:20:11','cancelled',151.63,'pending',75.82,'2025-03-18 17:23:47','paypal'),(58,8,15,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:24:17','cancelled',156.90,'pending',78.45,'2025-03-18 17:25:44','paypal'),(59,8,11,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:26:03','cancelled',117.94,'pending',58.97,'2025-03-18 17:35:09','paypal'),(60,8,12,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:28:22','cancelled',166.14,'pending',83.07,'2025-03-18 17:35:12','paypal'),(61,8,13,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:30:03','cancelled',149.18,'pending',74.59,'2025-03-18 17:35:14','paypal'),(62,8,11,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:35:43','cancelled',165.75,'pending',82.88,'2025-03-18 17:36:19','paypal'),(63,8,11,'2025-03-20 00:00:00','2025-03-21 00:00:00','2025-03-18 10:45:08','cancelled',75.82,'pending',37.91,'2025-03-18 17:49:40','paypal'),(64,8,11,'2025-03-20 00:00:00','2025-03-22 00:00:00','2025-03-18 10:49:57','cancelled',149.88,'pending',74.94,'2025-03-18 17:50:47','paypal'),(65,8,5,'2025-03-19 00:00:00','2025-03-22 00:00:00','2025-03-18 10:51:14','cancelled',130.57,'pending',65.29,'2025-03-18 17:52:41','paypal'),(66,8,5,'2025-03-19 00:00:00','2025-03-20 00:00:00','2025-03-18 10:53:05','cancelled',44.58,'pending',22.29,'2025-03-18 17:55:38','paypal'),(67,8,5,'2025-03-19 00:00:00','2025-03-20 00:00:00','2025-03-18 10:55:56','cancelled',39.00,'pending',19.50,'2025-03-20 11:46:26','paypal'),(68,8,1,'2025-03-20 00:00:00','2025-03-23 00:00:00','2025-03-20 04:51:32','checked_out',3820000.00,'paid',0.00,NULL,'cash'),(69,8,1,'2025-03-21 00:00:00','2025-03-24 00:00:00','2025-03-20 04:52:59','checked_out',3348000.00,'paid',0.00,NULL,'cash'),(70,8,2,'2025-03-26 00:00:00','2025-03-29 00:00:00','2025-03-20 04:53:52','checked_out',3720000.00,'paid',0.00,NULL,'cash'),(71,8,1,'2025-03-24 00:00:00','2025-03-27 00:00:00','2025-03-22 07:37:06','checked_out',130.57,'paid',0.00,NULL,'paypal'),(72,8,1,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:05:11','cancelled',46.33,'paid',23.17,'2025-04-01 15:47:34','paypal'),(73,8,2,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:17:22','cancelled',43.88,'paid',21.94,'2025-03-30 00:17:48','paypal'),(74,8,2,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:21:43','cancelled',56.16,'paid',28.08,'2025-03-30 00:21:57','paypal'),(75,10,3,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:22:40','cancelled',47.38,'paid',23.69,'2025-04-01 15:47:41','paypal'),(76,11,2,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:25:53','cancelled',47.38,'pending',23.69,'2025-03-30 00:28:41','paypal'),(77,11,11,'2025-03-31 00:00:00','2025-04-01 00:00:00','2025-03-29 17:30:06','cancelled',75.47,'cancelled',0.00,NULL,'paypal'),(78,8,1,'2025-04-02 00:00:00','2025-04-04 00:00:00','2025-04-01 08:49:00','checked_out',2205000.00,'pending',0.00,NULL,'cash'),(79,8,1,'2025-04-01 00:00:00','2025-04-02 00:00:00','2025-04-01 08:51:55','cancelled',1143000.00,'pending',571500.00,'2025-04-01 15:52:04','cash'),(80,8,5,'2025-04-04 00:00:00','2025-04-07 00:00:00','2025-04-01 08:52:34','cancelled',3348000.00,'pending',0.00,'2025-04-01 15:55:50','cash'),(81,11,4,'2025-04-04 00:00:00','2025-04-07 00:00:00','2025-04-01 08:53:33','cancelled',130.57,'paid',0.00,'2025-04-01 15:55:52','paypal'),(82,8,5,'2025-04-04 00:00:00','2025-04-07 00:00:00','2025-04-01 08:57:11','checked_out',3348000.00,'pending',0.00,NULL,'cash'),(83,8,1,'2025-04-04 00:00:00','2025-04-05 00:00:00','2025-04-01 09:12:46','booked',1125000.00,'pending',0.00,NULL,'cash');
 /*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -67,8 +68,9 @@ CREATE TABLE `customers` (
   `phone_number` varchar(15) DEFAULT NULL,
   `id_card` varchar(50) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
   PRIMARY KEY (`customer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -77,7 +79,7 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Nguyễn Văn A','male','Hà Nội','0987654321','123456789','a@gmail.com'),(2,'Trần Thị B','female','Hồ Chí Minh','0978654321','987654321','b@gmail.com'),(3,'Lê Văn C','male','Đà Nẵng','0967543210','456789123','c@gmail.com'),(4,'Phạm Thị D','female','Hải Phòng','0956432109','654321987','d@gmail.com'),(5,'Hoàng Văn E','male','Cần Thơ','0945321098','789123456','e@gmail.com'),(6,'Trung Nguyên','male','54 ,HHT,p.12,q.TB','0342896259','123','trungnguyensd12@gmail.com'),(7,'TMQ','male','54 ,HHT,p.12,q.TB','0123456789','123','hochiminh145632@gmail.com');
+INSERT INTO `customers` VALUES (1,'Nguyễn Văn A','male','Hà Nội','0987654321','123456789','a@gmail.com','1997-03-01'),(2,'Trần Thị B','female','Hồ Chí Minh','0978654321','987654321','b@gmail.com','1995-08-21'),(3,'Lê Văn C','female','Đà Nẵng','0967543210','456789123','c@gmail.com','1999-12-20'),(4,'Phạm Thị D','female','Hải Phòng','0956432109','654321987','d@gmail.com','2000-09-16'),(5,'Hoàng Văn E','female','Cần Thơ','0945321098','789123456','e@gmail.com','2002-06-06'),(6,'Trung Nguyên','male','54 ,HHT,p.12,q.TB','0342896259','123','trungnguyensd12@gmail.com','2004-07-10'),(7,'TMQ','male','54 ,HHT,p.12,q.TB','0123456789','123','hochiminh145632@gmail.com','2004-01-01'),(8,'Trung Nguyên','male','54 ,HHT,p.12,q.TB','123456789','123','trungnguyensd12@gmail.com','2004-07-10'),(9,'Nguyễn Văn B','male','123 Đường ABC, Quận 1, TP.HCM','0909123456','123456789','trungnguyensd12@gmail.com','2005-06-01'),(10,'Nguyễn Thị B','female','54 ,HHT,p.12,q.TB','123456789','123','trungnguyensd12@gmail.com',NULL),(11,'Nguyễn Hoàng Trung Nguyên','male','54 ,HHT,p.12,q.TB','123456789','123','trungnguyensd12@gmail.com',NULL);
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -91,7 +93,6 @@ DROP TABLE IF EXISTS `employees`;
 CREATE TABLE `employees` (
   `employee_id` int NOT NULL AUTO_INCREMENT,
   `full_name` varchar(100) NOT NULL,
-  `position` varchar(50) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('receptionist','service staff','manager') DEFAULT 'receptionist',
@@ -99,7 +100,7 @@ CREATE TABLE `employees` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`employee_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -108,7 +109,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (1,'Lê Thị Nhung',NULL,'nhung@gmail.com','$2b$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','receptionist','0981111111','2025-02-19 21:30:29'),(2,'Nguyễn Văn Hải',NULL,'hai@gmail.com','$2b$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','service staff','0972222222','2025-02-19 21:30:29'),(3,'Trần Minh Đức',NULL,'duc@gmail.com','$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','manager','0963333333','2025-02-19 21:30:29'),(4,'Phạm Thị Linh',NULL,'linh@gmail.com','$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','receptionist','0954444444','2025-02-19 21:30:29'),(5,'Đỗ Văn Tùng',NULL,'tung@gmail.com','$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','service staff','0945555555','2025-02-19 21:30:29');
+INSERT INTO `employees` VALUES (2,'Nguyễn Văn Hải','hai@gmail.com','$2b$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','service staff','0972222222','2025-02-19 21:30:29'),(3,'Trần Minh Đức','duc@gmail.com','$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','manager','0123456789','2025-02-19 21:30:29'),(4,'Phạm Thị Linh','linh@gmail.com','$2b$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','receptionist','0954444444','2025-02-19 21:30:29'),(9,'Nguyễn Hoàng Trung Nguyên','nguyen@gmail.com','$10$4jRAjhZ6wrrhmL4/fAVK4.H9dXzycHqZGDl/wfpndWWV6FbZoPtX.','manager','0123456789','2025-03-13 06:33:44'),(12,'Thầy Quí','qui@gmail.com','$2b$10$IWZN8JJ6KvmLHtZ/jJiOSeJzHeg7y1WtMzbL30M1O5P8ZNop6sJ62','manager','.0123456789','2025-04-01 08:59:14');
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -186,7 +187,7 @@ CREATE TABLE `reports` (
   PRIMARY KEY (`report_id`),
   KEY `fk_room` (`room_id`),
   CONSTRAINT `fk_room` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -195,7 +196,7 @@ CREATE TABLE `reports` (
 
 LOCK TABLES `reports` WRITE;
 /*!40000 ALTER TABLE `reports` DISABLE KEYS */;
-INSERT INTO `reports` VALUES (6,'2025-02-24 11:10:32','Cửa sổ bị hỏng.',2),(7,'2025-02-24 11:24:05','Điều hòa không hoạt động.',1),(8,'2025-02-24 11:34:41','NVS phòng hơi dơ',1);
+INSERT INTO `reports` VALUES (6,'2025-02-24 11:10:32','Cửa sổ bị hỏng.',2),(7,'2025-02-24 11:24:05','Điều hòa không hoạt động.',1),(8,'2025-02-24 11:34:41','NVS phòng hơi dơ',1),(9,'2025-04-01 08:58:06','Phòng hư nhà vệ sinh',10);
 /*!40000 ALTER TABLE `reports` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -212,11 +213,10 @@ CREATE TABLE `rooms` (
   `room_type` enum('standard','family','queen') NOT NULL,
   `status` enum('available','booked','occupied','maintenance') DEFAULT 'available',
   `price` decimal(10,2) NOT NULL,
-  `max_occupancy` int NOT NULL,
   `area` float DEFAULT NULL,
   PRIMARY KEY (`room_id`),
   UNIQUE KEY `room_number` (`room_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -225,7 +225,7 @@ CREATE TABLE `rooms` (
 
 LOCK TABLES `rooms` WRITE;
 /*!40000 ALTER TABLE `rooms` DISABLE KEYS */;
-INSERT INTO `rooms` VALUES (1,'101','standard','booked',1200000.00,2,30),(2,'102','standard','available',1200000.00,2,30),(3,'103','standard','available',1200000.00,2,30),(4,'104','standard','booked',1200000.00,2,30),(5,'105','standard','available',1200000.00,2,30),(6,'201','family','available',1700000.00,3,35),(7,'202','family','booked',1700000.00,3,36),(8,'203','family','available',1700000.00,3,38),(9,'204','family','booked',1700000.00,3,34),(10,'205','family','available',1700000.00,3,37),(11,'301','queen','available',2100000.00,2,40),(12,'302','queen','available',2100000.00,2,42),(13,'303','queen','available',2100000.00,2,44),(14,'304','queen','available',2100000.00,2,39),(15,'305','queen','booked',2100000.00,2,41);
+INSERT INTO `rooms` VALUES (1,'101','standard','booked',1200000.00,30),(2,'102','standard','available',1200000.00,30),(3,'103','standard','available',1200000.00,30),(4,'104','standard','available',1200000.00,30),(5,'105','standard','available',1200000.00,30),(6,'201','family','available',1700000.00,35),(7,'202','family','available',1700000.00,36),(8,'203','family','available',1700000.00,38),(9,'204','family','available',1700000.00,34),(10,'205','family','available',1700000.00,37),(11,'301','queen','available',2100000.00,40),(12,'302','queen','available',2100000.00,42),(13,'303','queen','available',2100000.00,44),(14,'304','queen','available',2100000.00,39),(15,'305','queen','available',2100000.00,41);
 /*!40000 ALTER TABLE `rooms` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -243,7 +243,7 @@ CREATE TABLE `services` (
   `unit` varchar(50) NOT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
   PRIMARY KEY (`service_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -252,7 +252,7 @@ CREATE TABLE `services` (
 
 LOCK TABLES `services` WRITE;
 /*!40000 ALTER TABLE `services` DISABLE KEYS */;
-INSERT INTO `services` VALUES (1,'Giặt ủi',50000.00,'lần','active'),(2,'Ăn sáng',100000.00,'suất','active'),(3,'Dọn phòng',200000.00,'lần','active'),(4,'Thuê xe',300000.00,'ngày','active'),(5,'Massage',400000.00,'giờ','active');
+INSERT INTO `services` VALUES (1,'Giặt ủi',50000.00,'lần','active'),(2,'Ăn sáng',50000.00,'suất','active'),(3,'Dọn phòng',150000.00,'lần','active'),(4,'Thuê xe',100000.00,'ngày','active'),(5,'Massage',400000.00,'giờ','active'),(6,'Bóng bàn',70000.00,'giờ','active'),(9,'Picklebal',70000.00,'giờ','active');
 /*!40000 ALTER TABLE `services` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -268,13 +268,12 @@ CREATE TABLE `used_services` (
   `booking_id` int NOT NULL,
   `service_id` int NOT NULL,
   `quantity` int NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
   PRIMARY KEY (`used_service_id`),
   KEY `booking_id` (`booking_id`),
   KEY `service_id` (`service_id`),
   CONSTRAINT `used_services_ibfk_1` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`),
   CONSTRAINT `used_services_ibfk_2` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -283,7 +282,7 @@ CREATE TABLE `used_services` (
 
 LOCK TABLES `used_services` WRITE;
 /*!40000 ALTER TABLE `used_services` DISABLE KEYS */;
-INSERT INTO `used_services` VALUES (1,1,1,2,100000.00),(2,2,2,3,300000.00),(3,3,3,1,200000.00),(4,4,4,1,300000.00),(5,5,5,2,800000.00),(6,1,2,2,200000.00);
+INSERT INTO `used_services` VALUES (1,1,1,2),(2,2,2,3),(3,3,3,1),(4,4,4,1),(5,5,5,2),(6,1,2,2),(7,51,3,1),(8,51,4,1),(9,52,6,1),(10,52,1,1),(11,52,2,1),(12,52,3,1),(13,52,4,1),(14,52,5,1),(15,53,1,1),(16,53,2,1),(17,53,3,1),(18,53,4,1),(19,53,5,1),(20,53,6,1),(21,54,1,1),(22,54,2,1),(23,54,3,1),(24,54,4,1),(25,54,5,1),(26,54,6,1),(27,55,1,1),(28,56,1,1),(29,56,2,1),(30,56,6,1),(31,57,1,1),(32,57,2,1),(33,58,1,1),(34,58,2,1),(35,58,3,1),(36,59,1,1),(37,59,2,1),(38,60,6,1),(39,61,1,1),(40,62,1,1),(41,63,6,1),(42,64,2,1),(43,65,1,1),(44,65,2,1),(45,66,2,1),(46,67,1,1),(47,68,3,1),(48,68,2,1),(49,69,1,1),(50,69,2,1),(51,70,1,1),(52,70,2,1),(53,30,3,1),(54,71,1,1),(55,71,2,1),(56,72,1,1),(57,72,2,1),(58,73,1,1),(59,74,5,1),(60,75,3,1),(61,76,3,1),(62,77,1,1),(63,78,1,1),(64,79,2,1),(65,80,1,1),(66,80,2,1),(67,81,1,1),(68,81,2,1),(69,82,1,1),(70,82,2,1),(71,83,1,1);
 /*!40000 ALTER TABLE `used_services` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -297,8 +296,9 @@ DROP TABLE IF EXISTS `vouchers`;
 CREATE TABLE `vouchers` (
   `voucher_code` varchar(20) NOT NULL,
   `discount_percentage` decimal(5,2) NOT NULL,
-  `expiry_date` date NOT NULL,
+  `expiration_date` date NOT NULL,
   `minimum_order_value` decimal(10,2) DEFAULT '0.00',
+  `start_date` date DEFAULT NULL,
   PRIMARY KEY (`voucher_code`),
   UNIQUE KEY `voucher_code` (`voucher_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -310,7 +310,7 @@ CREATE TABLE `vouchers` (
 
 LOCK TABLES `vouchers` WRITE;
 /*!40000 ALTER TABLE `vouchers` DISABLE KEYS */;
-INSERT INTO `vouchers` VALUES ('DISCOUNT10',10.00,'2025-12-31',100000.00),('FESTIVE30',30.00,'2025-12-25',100000.00),('HOLIDAY25',25.00,'2025-11-30',100000.00),('SUMMER15',15.00,'2025-06-30',100000.00),('VIP20',20.00,'2025-09-30',100000.00);
+INSERT INTO `vouchers` VALUES ('DISCOUNT10',10.00,'2025-12-31',100000.00,'2025-01-01'),('FESTIVE30',30.00,'2025-12-24',300000.00,'2024-12-30'),('HOLIDAY25',25.00,'2025-11-29',250000.00,'2024-12-30'),('SUMMER15',15.00,'2025-06-29',150000.00,'2024-12-30'),('VIP20',20.00,'2025-06-29',200000.00,'2024-11-30');
 /*!40000 ALTER TABLE `vouchers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,4 +389,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-04 12:50:42
+-- Dump completed on 2025-04-01 17:05:03
