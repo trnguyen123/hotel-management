@@ -151,17 +151,15 @@ const RevenueManagement = () => {
                       );
                     })}
                     <tr className="summary-row">
-                      <td colSpan="7"><strong>Tổng</strong></td>
+                      <td colSpan="7">Tổng doanh thu</td>
                       <td className="text-right">
-                        <strong>{totalRevenue.toLocaleString()} VND</strong>
+                        {totalRevenue.toLocaleString()} VND
                       </td>
                       <td></td>
                       <td className="text-right">
-                        <strong>
-                          {filteredBookings
-                            .reduce((sum, b) => sum + convertToVND(b.cancellation_fee, b.payment_method), 0)
-                            .toLocaleString()} VND
-                        </strong>
+                        {filteredBookings
+                          .reduce((sum, b) => sum + convertToVND(b.cancellation_fee, b.payment_method), 0)
+                          .toLocaleString()} VND
                       </td>
                     </tr>
                   </tbody>
