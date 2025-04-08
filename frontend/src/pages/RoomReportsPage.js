@@ -193,7 +193,7 @@ const RoomReportsPage = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>STT</th> {/* Thay ID bằng STT */}
+                <th>STT</th> 
                 <th>Số Phòng</th>
                 <th>Loại Phòng</th>
                 <th>Giá</th>
@@ -205,10 +205,10 @@ const RoomReportsPage = () => {
               {currentRooms.length > 0 ? (
                 currentRooms.map((room, index) => (
                   <tr key={room.room_id}>
-                    <td>{indexOfFirstRoom + index + 1}</td> {/* STT thay vì room_id */}
+                    <td>{indexOfFirstRoom + index + 1}</td> 
                     <td>{room.room_number}</td>
                     <td>{room.room_type}</td>
-                    <td>{room.price}</td>
+                    <td>{Number(room.price).toLocaleString('vi-VN')}</td>
                     <td>{room.status}</td>
                     <td className="actions">
                       <button className="btn btn-edit" onClick={() => handleEditRoom(room)}>
