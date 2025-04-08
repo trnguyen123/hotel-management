@@ -8,18 +8,66 @@ const { client } = require('../config/paypalConfig');
 router.post("/create", async (req, res) => {
   const { full_name, gender, cmnd, email, phone, address, room_id, check_in_date, check_out_date, total_price, payment_status, payment_method, services } = req.body;
 
+  // Kiểm tra thông tin đầu vào
   if (!full_name || !phone || !room_id || !check_in_date || !check_out_date || !total_price || !payment_status || !payment_method) {
     return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
   }
 
   try {
-    const [room] = await db.execute("SELECT status FROM rooms WHERE room_id = ?", [room_id]);
-    if (room.length === 0 || room[0].status !== "available") {
-      return res.status(400).json({ message: "Phòng không khả dụng!" });
+    // Chuyển đổi ngày tháng sang định dạng Date và chuẩn hóa múi giờ
+    const newCheckIn = new Date(check_in_date);
+    const newCheckOut = new Date(check_out_date);
+
+    // Chuẩn hóa về cùng múi giờ (bỏ qua giờ, chỉ so sánh ngày)
+    newCheckIn.setHours(0, 0, 0, 0);
+    newCheckOut.setHours(0, 0, 0, 0);
+
+    // Kiểm tra xem ngày checkout có nhỏ hơn ngày checkin không
+    if (newCheckOut <= newCheckIn) {
+      return res.status(400).json({ message: "Ngày check-out phải sau ngày check-in!" });
     }
 
+    // Kiểm tra xung đột thời gian với các booking hiện có
+    const [existingBookings] = await db.execute(
+      "SELECT check_in_date, check_out_date FROM bookings WHERE room_id = ? AND status IN ('booked', 'checked_in')",
+      [room_id]
+    );
+    console.log("Bookings hiện có của phòng:", existingBookings);
+
+    // Kiểm tra xung đột thời gian
+    let hasConflict = false;
+    let conflictMessage = "";
+    if (existingBookings.length > 0) {
+      for (const booking of existingBookings) {
+        const existingCheckIn = new Date(booking.check_in_date);
+        const existingCheckOut = new Date(booking.check_out_date);
+
+        // Chuẩn hóa múi giờ (bỏ qua giờ, chỉ so sánh ngày)
+        existingCheckIn.setHours(0, 0, 0, 0);
+        existingCheckOut.setHours(0, 0, 0, 0);
+
+        // Kiểm tra xung đột thời gian
+        if (newCheckIn <= existingCheckOut && newCheckOut >= existingCheckIn) {
+          hasConflict = true;
+          conflictMessage = `Phòng đã được đặt từ ${existingCheckIn.toLocaleDateString()} đến ${existingCheckOut.toLocaleDateString()}! Vui lòng chọn thời gian khác.`;
+          break; 
+        }
+      }
+    }
+
+    // Nếu có xung đột, trả về thông báo lỗi và dừng lại
+    if (hasConflict) {
+      console.log("Conflict detected:", conflictMessage);
+      return res.status(400).json({ message: conflictMessage });
+    }
+
+    // Xử lý thông tin khách hàng
     let customer_id;
-    const [existingCustomer] = await db.execute("SELECT customer_id FROM customers WHERE phone_number = ?", [phone]);
+    const [existingCustomer] = await db.execute(
+      "SELECT customer_id FROM customers WHERE phone_number = ? AND email = ?",
+      [phone, email]
+    );
+
     if (existingCustomer.length > 0) {
       customer_id = existingCustomer[0].customer_id;
     } else {
@@ -30,15 +78,17 @@ router.post("/create", async (req, res) => {
       customer_id = customerResult.insertId;
     }
 
+    // Tạo booking mới
     const [bookingResult] = await db.execute(
       "INSERT INTO bookings (customer_id, room_id, check_in_date, check_out_date, booking_date, status, total_price, payment_status, payment_method) VALUES (?, ?, ?, ?, NOW(), 'booked', ?, ?, ?)",
       [customer_id, room_id, check_in_date, check_out_date, total_price, payment_status, payment_method]
     );
     const booking_id = bookingResult.insertId;
 
+    // Cập nhật trạng thái phòng
     await db.execute("UPDATE rooms SET status = 'booked' WHERE room_id = ?", [room_id]);
 
-    // Lưu dịch vụ vào used_services (không có total_price)
+    // Lưu dịch vụ (nếu có)
     if (services && Array.isArray(services) && services.length > 0) {
       for (const service of services) {
         const { service_id, quantity } = service;
@@ -52,6 +102,7 @@ router.post("/create", async (req, res) => {
       }
     }
 
+    // Gửi email xác nhận (nếu có email)
     if (email) {
       await sendBookingConfirmation(email, {
         booking_id,
@@ -62,31 +113,17 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    if (payment_method === 'paypal') {
-      const request = new paypal.orders.OrdersCreateRequest();
-      request.prefer("return=representation");
-      request.requestBody({
-        intent: 'CAPTURE',
-        purchase_units: [{ amount: { currency_code: 'USD', value: (total_price * 0.00004).toFixed(2) } }] // Chuyển VND sang USD nếu cần
-      });
+    // Trả về kết quả thành công
+    return res.status(201).json({ message: "Đặt phòng thành công!", booking_id });
 
-      try {
-        const order = await client.execute(request);
-        return res.status(201).json({ message: "Đặt phòng thành công!", booking_id, paypal_order_id: order.result.id });
-      } catch (error) {
-        console.error("Lỗi khi tạo đơn hàng PayPal:", error);
-        return res.status(500).json({ message: "Lỗi khi tạo đơn hàng PayPal!" });
-      }
-    }
-
-    res.status(201).json({ message: "Đặt phòng thành công!", booking_id });
   } catch (error) {
     console.error("Lỗi khi đặt phòng:", error);
-    res.status(500).json({ message: "Lỗi server!" });
+    return res.status(500).json({ message: "Lỗi server!" });
   }
 });
- // API Nhận phòng
- router.post("/checkin", async (req, res) => {
+
+// API Nhận phòng
+router.post("/checkin", async (req, res) => {
   const { booking_id } = req.body;
 
   if (!booking_id) {
@@ -120,35 +157,44 @@ router.post("/create", async (req, res) => {
 
 // API Trả phòng
 router.post("/checkout", async (req, res) => {
-    const { booking_id } = req.body;
+  const { booking_id } = req.body;
 
-    if (!booking_id) {
-        return res.status(400).json({ message: "Thiếu mã đặt phòng!" });
+  if (!booking_id) {
+    return res.status(400).json({ message: "Thiếu mã đặt phòng!" });
+  }
+
+  try {
+    const [booking] = await db.execute(
+      "SELECT room_id, status, check_in_date FROM bookings WHERE booking_id = ?",
+      [booking_id]
+    );
+
+    if (booking.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
     }
 
-    try {
-        const [booking] = await db.execute("SELECT room_id, status FROM bookings WHERE booking_id = ?", [booking_id]);
-
-        if (booking.length === 0) {
-            return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
-        }
-
-        if (booking[0].status !== "checked_in") {
-            return res.status(400).json({ message: "Phòng chưa được nhận!" });
-        }
-
-        const room_id = booking[0].room_id;
-
-        await db.execute("UPDATE bookings SET status = 'checked_out' WHERE booking_id = ?", [booking_id]);
-
-        await db.execute("UPDATE rooms SET status = 'available' WHERE room_id = ?", [room_id]);
-
-        res.status(200).json({ message: "Trả phòng thành công!" });
-
-    } catch (error) {
-        console.error("Lỗi khi trả phòng:", error);
-        res.status(500).json({ message: "Lỗi server!" });
+    if (booking[0].status !== "checked_in") {
+      return res.status(400).json({ message: "Phòng chưa được nhận!" });
     }
+
+    const checkInDate = new Date(booking[0].check_in_date);
+    const currentDate = new Date();
+
+    if (currentDate < checkInDate) {
+      console.log("Chưa đến ngày nhận phòng với booking_id:", booking_id, "check_in_date:", checkInDate);
+      return res.status(400).json({ message: "Chưa đến ngày nhận phòng, không thể trả phòng!" });
+    }
+
+    const room_id = booking[0].room_id;
+
+    await db.execute("UPDATE bookings SET status = 'checked_out' WHERE booking_id = ?", [booking_id]);
+    await db.execute("UPDATE rooms SET status = 'available' WHERE room_id = ?", [room_id]);
+
+    res.status(200).json({ message: "Trả phòng thành công!" });
+  } catch (error) {
+    console.error("Lỗi khi trả phòng:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
 });
 
 // API Hủy phòng

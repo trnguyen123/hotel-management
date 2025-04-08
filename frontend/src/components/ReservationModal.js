@@ -20,12 +20,18 @@ const BookingDetailsModal = ({ booking, onClose }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id: booking.booking_id }),
       });
+  
+      const data = await response.json(); 
       if (response.ok) {
-        onClose();
-        window.location.reload();
+        alert(data.message); 
+        onClose(); 
+        window.location.reload(); 
+      } else {
+        alert(data.message); 
       }
     } catch (error) {
       console.error("Error during checkout:", error);
+      alert("Không thể kết nối đến server!");
     }
   };
 
@@ -36,15 +42,20 @@ const BookingDetailsModal = ({ booking, onClose }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id: booking.booking_id }),
       });
+      const data = await response.json();
       if (response.ok) {
+        alert(data.message);
         onClose();
         window.location.reload();
+      } else {
+        alert(data.message);
       }
     } catch (error) {
       console.error("Error during checkin:", error);
+      alert("Không thể kết nối đến server!");
     }
   };
-
+  
   const handleCancel = async () => {
     try {
       const response = await fetch(`http://localhost:5000/api/booking/cancel`, {
@@ -52,12 +63,17 @@ const BookingDetailsModal = ({ booking, onClose }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id: booking.booking_id }),
       });
+      const data = await response.json();
       if (response.ok) {
+        alert(data.message);
         onClose();
         window.location.reload();
+      } else {
+        alert(data.message);
       }
     } catch (error) {
       console.error("Error during cancellation:", error);
+      alert("Không thể kết nối đến server!");
     }
   };
 
@@ -262,7 +278,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
       payment_method: formData.payment_method,
       services: formData.selected_services.map(s => ({ service_id: s.service_id, quantity: s.quantity })),
     };
-
+  
     if (formData.payment_method === "vnpay") {
       try {
         const response = await fetch("http://localhost:5000/api/vnpay/create_payment_url", {
@@ -275,36 +291,39 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
             language: "vn",
           }),
         });
+        const data = await response.json();
         if (response.ok) {
-          const { paymentUrl } = await response.json();
-          window.location.href = paymentUrl;
+          window.location.href = data.paymentUrl;
         } else {
-          alert("Không thể tạo URL thanh toán VNPay!");
+          alert(data.message || "Không thể tạo URL thanh toán VNPay!");
         }
       } catch (error) {
         console.error("Error creating VNPay payment URL:", error);
-        alert("Có lỗi xảy ra khi tạo URL thanh toán VNPay!");
+        alert("Không thể kết nối đến server khi tạo URL thanh toán VNPay!");
       }
       return;
     }
-
+  
     try {
       const response = await fetch("http://localhost:5000/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingDetails),
       });
+      const data = await response.json();
       if (response.ok) {
-        const booking = await response.json();
+        const booking = data;
         const bookingWithGuest = { ...booking, guest: formData.full_name, color };
         onBookingCreated(bookingWithGuest, totalPrice);
-        alert("Đặt phòng thành công!");
+        alert(data.message);
         onClose();
         window.location.reload();
-      } 
+      } else {
+        alert(data.message);
+      }
     } catch (error) {
       console.error("Error creating booking:", error);
-      alert("Có lỗi xảy ra khi tạo đặt phòng!");
+      alert("Không thể kết nối đến server khi tạo đặt phòng!");
     }
   };
 
@@ -497,7 +516,7 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
                 <p>Phòng: {(roomList.find(room => String(room.room_id) === String(formData.room_id))?.price * 
                            ((new Date(formData.check_out_date) - new Date(formData.check_in_date)) / (1000 * 60 * 60 * 24)) || 0).toLocaleString()} VND</p>
                 <p>Dịch vụ: {formData.selected_services.reduce((sum, s) => sum + (s.quantity * s.price || 0), 0).toLocaleString()} VND</p>
-                <p><strong>Tổng cộng: {totalPrice.toLocaleString()} VND</strong></p>
+                <p>Tổng cộng: {totalPrice.toLocaleString()} VND</p>
                 {exchangeRate > 0 && <p>{totalPriceUSD.toFixed(2)} USD</p>}
               </div>
             </div>
