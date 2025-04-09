@@ -7,7 +7,7 @@ const RevenueManagement = () => {
   const navigate = useNavigate();
   const [reportType, setReportType] = useState('bookings');
   const [period, setPeriod] = useState('month');
-  const [date, setDate] = useState('2025-03');
+  const [date, setDate] = useState(null); // Giá trị mặc định là null (không chọn tháng)
   const [bookingData, setBookingData] = useState([]);
   const [loading, setLoading] = useState(true);
   // Thêm state cho phân trang
@@ -33,6 +33,11 @@ const RevenueManagement = () => {
   }, []);
 
   const filterDataByPeriod = (data) => {
+    // Nếu không chọn tháng (date là null), trả về toàn bộ dữ liệu
+    if (!date) {
+      return data;
+    }
+
     const selectedDate = new Date(date + '-01');
     return data.filter((item) => {
       const checkInDate = new Date(item.check_in_date);
@@ -80,11 +85,58 @@ const RevenueManagement = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Hàm làm mới dữ liệu
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/api/booking/getAll');
+      const data = await response.json();
+      setBookingData(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Lỗi khi làm mới dữ liệu:', error);
+      setLoading(false);
+    }
+  };
+
+  // Hàm xử lý khi thay đổi tháng
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    setDate(selectedDate || null); // Nếu không chọn tháng, đặt lại thành null
+    setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi tháng
+  };
+
   return (
     <div className="management-page">
       <div className="page-header">
         <h1>Quản lý báo cáo</h1>
       </div>
+
+      {/* Thêm bộ lọc để chọn tháng */}
+      <div className="filter-section" style={{ marginBottom: '20px' }}>
+        <label>Chọn tháng: </label>
+        <input
+          type="month"
+          value={date || ''} // Nếu date là null, hiển thị rỗng
+          onChange={handleDateChange}
+          style={{ marginLeft: '10px', padding: '5px' }}
+        />
+        <button
+          onClick={handleRefresh}
+          style={{
+            marginLeft: '20px',
+            padding: '5px 10px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          Làm mới dữ liệu
+        </button>
+      </div>
+
       <div className="card">
         <div className="report-header">
           <h2>
@@ -122,34 +174,42 @@ const RevenueManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentBookings.map((booking,index) => {
-                      const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
-                      const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
-                      const cancellationFee = Number(booking.cancellation_fee);
+                    {currentBookings.length > 0 ? (
+                      currentBookings.map((booking, index) => {
+                        const isVnd = ['vnpay', 'cash'].includes(booking.payment_method.toLowerCase());
+                        const totalPrice = booking.total_price ? Number(booking.total_price) : 0;
+                        const cancellationFee = Number(booking.cancellation_fee);
 
-                      return (
-                        <tr key={booking.booking_id}>
-                          <td>{indexOfFirstBooking + index + 1}</td> 
-                          <td>{booking.full_name}</td>
-                          <td>{booking.room_number}</td>
-                          <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
-                          <td>{new Date(booking.check_in_date).toLocaleDateString('vi-VN')}</td>
-                          <td>{new Date(booking.check_out_date).toLocaleDateString('vi-VN')}</td>
-                          <td>{booking.status}</td>
-                          <td className="text-right">
-                            {isVnd
-                              ? `${totalPrice.toLocaleString()} VND`
-                              : `${totalPrice.toLocaleString()} USD`}
-                          </td>
-                          <td>{booking.payment_status}</td>
-                          <td className="text-right">
-                            {isVnd
-                              ? `${cancellationFee.toLocaleString()} VND`
-                              : `${cancellationFee.toLocaleString()} USD`}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr key={booking.booking_id}>
+                            <td>{indexOfFirstBooking + index + 1}</td> 
+                            <td>{booking.full_name}</td>
+                            <td>{booking.room_number}</td>
+                            <td>{new Date(booking.booking_date).toLocaleDateString('vi-VN')}</td>
+                            <td>{new Date(booking.check_in_date).toLocaleDateString('vi-VN')}</td>
+                            <td>{new Date(booking.check_out_date).toLocaleDateString('vi-VN')}</td>
+                            <td>{booking.status}</td>
+                            <td className="text-right">
+                              {isVnd
+                                ? `${totalPrice.toLocaleString()} VND`
+                                : `${totalPrice.toLocaleString()} USD`}
+                            </td>
+                            <td>{booking.payment_status}</td>
+                            <td className="text-right">
+                              {isVnd
+                                ? `${cancellationFee.toLocaleString()} VND`
+                                : `${cancellationFee.toLocaleString()} USD`}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="10" style={{ textAlign: 'center' }}>
+                          Không có dữ liệu.
+                        </td>
+                      </tr>
+                    )}
                     <tr className="summary-row">
                       <td colSpan="7">Tổng doanh thu</td>
                       <td className="text-right">
@@ -166,31 +226,33 @@ const RevenueManagement = () => {
                 </table>
 
                 {/* Phân trang */}
-                <div className="pagination">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="pagination-button"
-                  >
-                    Trước
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {filteredBookings.length > 0 && (
+                  <div className="pagination">
                     <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="pagination-button"
                     >
-                      {page}
+                      Trước
                     </button>
-                  ))}
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="pagination-button"
-                  >
-                    Sau
-                  </button>
-                </div>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="pagination-button"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                )}
               </>
             )
           )}
