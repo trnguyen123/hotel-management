@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); 
-const bcrypt = require('bcrypt'); 
+const bcrypt = require('bcryptjs'); 
 
 // API lấy danh sách nhân viên
 router.get('/getAll', async (req, res) => {

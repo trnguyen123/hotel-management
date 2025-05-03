@@ -22,9 +22,15 @@ router.post("/create", async (req, res) => {
     newCheckIn.setHours(0, 0, 0, 0);
     newCheckOut.setHours(0, 0, 0, 0);
 
-    // Kiểm tra xem ngày checkout có nhỏ hơn ngày checkin không
-    if (newCheckOut <= newCheckIn) {
-      return res.status(400).json({ message: "Ngày check-out phải sau ngày check-in!" });
+    // Kiểm tra xem ngày checkout có trước ngày checkin không
+    if (newCheckOut < newCheckIn) {
+      return res.status(400).json({ message: "Ngày check-out không được trước ngày check-in!" });
+    }
+
+    // Kiểm tra xem phòng có tồn tại không
+    const [room] = await db.execute("SELECT room_id FROM rooms WHERE room_id = ?", [room_id]);
+    if (room.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy phòng!" });
     }
 
     // Kiểm tra xung đột thời gian với các booking hiện có
@@ -131,7 +137,10 @@ router.post("/checkin", async (req, res) => {
   }
 
   try {
-    const [booking] = await db.execute("SELECT room_id, status FROM bookings WHERE booking_id = ?", [booking_id]);
+    const [booking] = await db.execute(
+      "SELECT room_id, status, check_in_date, payment_method FROM bookings WHERE booking_id = ?",
+      [booking_id]
+    );
 
     if (booking.length === 0) {
       return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
@@ -139,11 +148,32 @@ router.post("/checkin", async (req, res) => {
 
     if (booking[0].status !== "booked") {
       return res.status(400).json({ message: "Phòng chưa được đặt hoặc đã nhận phòng!" });
-      return res.status(400).json({ message: "Khách chưa nhận phòng!" });
+    }
+
+    // Kiểm tra ngày hiện tại so với ngày nhận phòng
+    const checkInDate = new Date(booking[0].check_in_date);
+    const currentDate = new Date();
+
+    // Chuẩn hóa về cùng múi giờ (bỏ qua giờ, chỉ so sánh ngày)
+    checkInDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (currentDate < checkInDate) {
+      console.log("Chưa đến ngày nhận phòng với booking_id:", booking_id, "check_in_date:", checkInDate);
+      return res.status(400).json({ message: "Chưa đến ngày nhận phòng, không thể check-in!" });
     }
 
     const room_id = booking[0].room_id;
 
+    // Nếu payment_method là cash, cập nhật payment_status thành paid
+    if (booking[0].payment_method === "cash") {
+      await db.execute(
+        "UPDATE bookings SET payment_status = 'paid' WHERE booking_id = ?",
+        [booking_id]
+      );
+    }
+
+    // Cập nhật trạng thái booking và phòng
     await db.execute("UPDATE bookings SET status = 'checked_in' WHERE booking_id = ?", [booking_id]);
     await db.execute("UPDATE rooms SET status = 'occupied' WHERE room_id = ?", [room_id]);
 
@@ -199,27 +229,48 @@ router.post("/checkout", async (req, res) => {
 
 // API Hủy phòng
 router.post("/cancel", async (req, res) => {
-    const { booking_id } = req.body;
+  const { booking_id } = req.body;
 
-    if (!booking_id) {
-        return res.status(400).json({ message: "Vui lòng cung cấp booking_id!" });
+  if (!booking_id) {
+    return res.status(400).json({ message: "Vui lòng cung cấp booking_id!" });
+  }
+
+  try {
+    // Kiểm tra booking có tồn tại và lấy payment_method
+    const [booking] = await db.execute(
+      "SELECT payment_method FROM bookings WHERE booking_id = ?",
+      [booking_id]
+    );
+
+    if (booking.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy đơn đặt phòng!" });
     }
 
-    try {
-        // Gọi stored procedure để xử lý hủy phòng
-        const [result] = await db.execute("CALL cancel_booking(?, NOW())", [booking_id]);
-
-        // Cập nhật trạng thái phòng thành 'available' sau khi hủy phòng
-        await db.execute(
-            "UPDATE rooms SET status = 'available' WHERE room_id = (SELECT room_id FROM bookings WHERE booking_id = ?)",
-            [booking_id]
-        );
-
-        res.status(200).json({ message: "Hủy đặt phòng thành công!", cancellation_fee: result[0]?.cancellation_fee || 0 });
-    } catch (error) {
-        console.error("Lỗi khi hủy phòng:", error);
-        res.status(500).json({ message: "Lỗi server khi hủy phòng!" });
+    // Nếu payment_method là cash, cập nhật payment_status thành unpaid
+    if (booking[0].payment_method === "cash") {
+      await db.execute(
+        "UPDATE bookings SET payment_status = 'unpaid' WHERE booking_id = ?",
+        [booking_id]
+      );
     }
+
+    // Gọi stored procedure để xử lý hủy phòng
+    const [result] = await db.execute("CALL cancel_booking(?, NOW())", [booking_id]);
+
+    // Cập nhật trạng thái phòng thành 'available' sau khi hủy phòng
+    await db.execute(
+      "UPDATE rooms SET status = 'available' WHERE room_id = (SELECT room_id FROM bookings WHERE booking_id = ?)",
+      [booking_id]
+    );
+
+    res.status(200).json({ 
+      message: "Hủy đặt phòng thành công!", 
+      cancellation_fee: result[0]?.cancellation_fee || 0 
+    });
+  } catch (error) {
+    console.error("Lỗi khi hủy phòng:", error);
+    res.status(500).json({ message: "Lỗi server khi hủy phòng!" });
+  }
 });
 
 // API Lấy danh sách đặt phòng

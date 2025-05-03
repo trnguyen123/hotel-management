@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../Style/ReservationModal.css";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"; // Thêm PayPalScriptProvider, PayPalButtons
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const formatDate = (date) => {
   const d = new Date(date);
@@ -186,9 +186,20 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
 
     const checkInDate = new Date(formData.check_in_date);
     const checkOutDate = new Date(formData.check_out_date);
-    const numberOfNights = (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24);
+    // Chuẩn hóa để chỉ so sánh ngày
+    checkInDate.setHours(0, 0, 0, 0);
+    checkOutDate.setHours(0, 0, 0, 0);
 
-    const roomSubTotal = roomPrice * numberOfNights;
+    // Tính số ngày, ít nhất là 1 nếu cùng ngày
+    const numberOfNights = Math.max(
+      Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)),
+      checkInDate.getTime() === checkOutDate.getTime() ? 1 : 0
+    );
+
+    // Tính giá phòng: 50% nếu cùng ngày, đầy đủ nếu nhiều ngày
+    const roomSubTotal = numberOfNights === 1 && checkInDate.getTime() === checkOutDate.getTime()
+      ? roomPrice * 0.5 // Giảm 50% nếu cùng ngày
+      : roomPrice * numberOfNights;
 
     servicePrice = formData.selected_services.reduce((sum, service) => sum + (service.quantity * service.price || 0), 0);
 
@@ -261,6 +272,17 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
       alert("Vui lòng điền đầy đủ thông tin phòng và ngày!");
       return;
     }
+
+    // Kiểm tra ngày
+    const checkInDate = new Date(formData.check_in_date);
+    const checkOutDate = new Date(formData.check_out_date);
+    checkInDate.setHours(0, 0, 0, 0);
+    checkOutDate.setHours(0, 0, 0, 0);
+    if (checkOutDate < checkInDate) {
+      alert("Ngày trả phòng không được trước ngày nhận phòng!");
+      return;
+    }
+
     const color = formData.payment_method === "cash" ? "#4CAF50" : "#FFA500";
     const bookingDetails = {
       full_name: formData.full_name,
@@ -514,7 +536,11 @@ const ReservationModal = ({ isOpen, onClose, onBookingCreated, selectedBooking, 
               <div className="total-price-column">
                 <h3>Tổng Tiền</h3>
                 <p>Phòng: {(roomList.find(room => String(room.room_id) === String(formData.room_id))?.price * 
-                           ((new Date(formData.check_out_date) - new Date(formData.check_in_date)) / (1000 * 60 * 60 * 24)) || 0).toLocaleString()} VND</p>
+                           Math.max(
+                             Math.ceil((new Date(formData.check_out_date) - new Date(formData.check_in_date)) / (1000 * 60 * 60 * 24)),
+                             new Date(formData.check_in_date).setHours(0,0,0,0) === new Date(formData.check_out_date).setHours(0,0,0,0) ? 1 : 0
+                           ) * (new Date(formData.check_in_date).setHours(0,0,0,0) === new Date(formData.check_out_date).setHours(0,0,0,0) ? 0.5 : 1)
+                          || 0).toLocaleString()} VND</p>
                 <p>Dịch vụ: {formData.selected_services.reduce((sum, s) => sum + (s.quantity * s.price || 0), 0).toLocaleString()} VND</p>
                 <p>Tổng cộng: {totalPrice.toLocaleString()} VND</p>
                 {exchangeRate > 0 && <p>{totalPriceUSD.toFixed(2)} USD</p>}
